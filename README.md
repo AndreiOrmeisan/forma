@@ -94,6 +94,16 @@ Dependency versions for the frontend are recorded in `frontend/package-lock.json
 
 ## GitHub setup
 
+### GitHub Pages deployment
+
+`.github/workflows/deploy-pages.yml` builds the Next.js frontend and publishes `frontend/out` using GitHub Actions. The Pages publishing source must be set to GitHub Actions. The repository root contains documentation and source files. The deploy artifact contains the exported application.
+
+The workflow sets `GITHUB_PAGES=true` and uses the Pages base path, `/forma` for this repository. Exported routes include trailing slashes so direct navigation and refresh work on Pages. Standard local builds retain the Next.js server configuration. The legacy `/proiect-nou` route uses a client redirect in static exports.
+
+GitHub Pages serves the frontend. The FastAPI mock endpoint requires a separately hosted HTTPS backend. Set repository Actions variable `NEXT_PUBLIC_API_BASE_URL` to that backend URL and allow the Pages origin in backend `CORS_ORIGINS`, then rerun the workflow. Without that backend configuration, domain selection and local image preview are available, while mock review displays the connection error and retry action.
+
+### Repository creation
+
 If GitHub CLI is unavailable, install it, open a new terminal, authenticate, and publish from the repository root.
 
 ```powershell

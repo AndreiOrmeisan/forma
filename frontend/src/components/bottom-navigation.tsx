@@ -6,7 +6,7 @@ import { furnitureRoutes } from "@/config/domains";
 import { FolderOpen, House, UserRound } from "lucide-react";
 
 export function BottomNavigation() {
-  const pathname = usePathname();
+  const pathname = usePathname().replace(/\/$/, "");
   const isHome = pathname === furnitureRoutes.home;
   const isProjects = pathname === furnitureRoutes.projects;
   return (
