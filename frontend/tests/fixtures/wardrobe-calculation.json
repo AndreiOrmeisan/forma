@@ -40,7 +40,13 @@
       "quantity": 2,
       "orientation": "unspecified",
       "unit_area_m2": "1.2",
-      "area_m2": "2.4"
+      "area_m2": "2.4",
+      "edges": {
+        "length_start": "none",
+        "length_end": "none",
+        "width_start": "abs_2",
+        "width_end": "none"
+      }
     },
     {
       "id": "top",
@@ -52,7 +58,13 @@
       "quantity": 1,
       "orientation": "unspecified",
       "unit_area_m2": "0.4584",
-      "area_m2": "0.4584"
+      "area_m2": "0.4584",
+      "edges": {
+        "length_start": "none",
+        "length_end": "none",
+        "width_start": "abs_2",
+        "width_end": "none"
+      }
     },
     {
       "id": "bottom",
@@ -64,7 +76,13 @@
       "quantity": 1,
       "orientation": "unspecified",
       "unit_area_m2": "0.4584",
-      "area_m2": "0.4584"
+      "area_m2": "0.4584",
+      "edges": {
+        "length_start": "none",
+        "length_end": "none",
+        "width_start": "abs_2",
+        "width_end": "none"
+      }
     },
     {
       "id": "shelves",
@@ -76,7 +94,13 @@
       "quantity": 3,
       "orientation": "unspecified",
       "unit_area_m2": "0.4202",
-      "area_m2": "1.2606"
+      "area_m2": "1.2606",
+      "edges": {
+        "length_start": "none",
+        "length_end": "none",
+        "width_start": "abs_2",
+        "width_end": "none"
+      }
     },
     {
       "id": "doors",
@@ -88,7 +112,13 @@
       "quantity": 2,
       "orientation": "unspecified",
       "unit_area_m2": "0.792412",
-      "area_m2": "1.584824"
+      "area_m2": "1.584824",
+      "edges": {
+        "length_start": "abs_2",
+        "length_end": "abs_2",
+        "width_start": "abs_2",
+        "width_end": "abs_2"
+      }
     },
     {
       "id": "back",
@@ -100,7 +130,8 @@
       "quantity": 1,
       "orientation": "unspecified",
       "unit_area_m2": "1.6",
-      "area_m2": "1.6"
+      "area_m2": "1.6",
+      "edges": null
     }
   ],
   "totals": {
@@ -110,5 +141,282 @@
   },
   "warnings": [
     "Suprafețele sunt nete și se referă la piesele din listă, înainte de optimizarea pe foi."
-  ]
+  ],
+  "edge_banding": {
+    "panel_edges": [
+      {
+        "panel_id": "sides",
+        "name": "Laterale",
+        "quantity": 2,
+        "edges": [
+          {
+            "edge": "length_start",
+            "name": "Începutul lungimii",
+            "banding_type": "none",
+            "length_mm": "600",
+            "net_length_per_piece_m": "0",
+            "total_net_length_m": "0"
+          },
+          {
+            "edge": "length_end",
+            "name": "Sfârșitul lungimii",
+            "banding_type": "none",
+            "length_mm": "600",
+            "net_length_per_piece_m": "0",
+            "total_net_length_m": "0"
+          },
+          {
+            "edge": "width_start",
+            "name": "Începutul lățimii",
+            "banding_type": "abs_2",
+            "length_mm": "2000",
+            "net_length_per_piece_m": "2",
+            "total_net_length_m": "4"
+          },
+          {
+            "edge": "width_end",
+            "name": "Sfârșitul lățimii",
+            "banding_type": "none",
+            "length_mm": "2000",
+            "net_length_per_piece_m": "0",
+            "total_net_length_m": "0"
+          }
+        ],
+        "net_length_per_piece_m": "2",
+        "total_net_length_m": "4"
+      },
+      {
+        "panel_id": "top",
+        "name": "Capac",
+        "quantity": 1,
+        "edges": [
+          {
+            "edge": "length_start",
+            "name": "Începutul lungimii",
+            "banding_type": "none",
+            "length_mm": "600",
+            "net_length_per_piece_m": "0",
+            "total_net_length_m": "0"
+          },
+          {
+            "edge": "length_end",
+            "name": "Sfârșitul lungimii",
+            "banding_type": "none",
+            "length_mm": "600",
+            "net_length_per_piece_m": "0",
+            "total_net_length_m": "0"
+          },
+          {
+            "edge": "width_start",
+            "name": "Începutul lățimii",
+            "banding_type": "abs_2",
+            "length_mm": "764",
+            "net_length_per_piece_m": "0.764",
+            "total_net_length_m": "0.764"
+          },
+          {
+            "edge": "width_end",
+            "name": "Sfârșitul lățimii",
+            "banding_type": "none",
+            "length_mm": "764",
+            "net_length_per_piece_m": "0",
+            "total_net_length_m": "0"
+          }
+        ],
+        "net_length_per_piece_m": "0.764",
+        "total_net_length_m": "0.764"
+      },
+      {
+        "panel_id": "bottom",
+        "name": "Bază",
+        "quantity": 1,
+        "edges": [
+          {
+            "edge": "length_start",
+            "name": "Începutul lungimii",
+            "banding_type": "none",
+            "length_mm": "600",
+            "net_length_per_piece_m": "0",
+            "total_net_length_m": "0"
+          },
+          {
+            "edge": "length_end",
+            "name": "Sfârșitul lungimii",
+            "banding_type": "none",
+            "length_mm": "600",
+            "net_length_per_piece_m": "0",
+            "total_net_length_m": "0"
+          },
+          {
+            "edge": "width_start",
+            "name": "Începutul lățimii",
+            "banding_type": "abs_2",
+            "length_mm": "764",
+            "net_length_per_piece_m": "0.764",
+            "total_net_length_m": "0.764"
+          },
+          {
+            "edge": "width_end",
+            "name": "Sfârșitul lățimii",
+            "banding_type": "none",
+            "length_mm": "764",
+            "net_length_per_piece_m": "0",
+            "total_net_length_m": "0"
+          }
+        ],
+        "net_length_per_piece_m": "0.764",
+        "total_net_length_m": "0.764"
+      },
+      {
+        "panel_id": "shelves",
+        "name": "Polițe",
+        "quantity": 3,
+        "edges": [
+          {
+            "edge": "length_start",
+            "name": "Începutul lungimii",
+            "banding_type": "none",
+            "length_mm": "550",
+            "net_length_per_piece_m": "0",
+            "total_net_length_m": "0"
+          },
+          {
+            "edge": "length_end",
+            "name": "Sfârșitul lungimii",
+            "banding_type": "none",
+            "length_mm": "550",
+            "net_length_per_piece_m": "0",
+            "total_net_length_m": "0"
+          },
+          {
+            "edge": "width_start",
+            "name": "Începutul lățimii",
+            "banding_type": "abs_2",
+            "length_mm": "764",
+            "net_length_per_piece_m": "0.764",
+            "total_net_length_m": "2.292"
+          },
+          {
+            "edge": "width_end",
+            "name": "Sfârșitul lățimii",
+            "banding_type": "none",
+            "length_mm": "764",
+            "net_length_per_piece_m": "0",
+            "total_net_length_m": "0"
+          }
+        ],
+        "net_length_per_piece_m": "0.764",
+        "total_net_length_m": "2.292"
+      },
+      {
+        "panel_id": "doors",
+        "name": "Uși",
+        "quantity": 2,
+        "edges": [
+          {
+            "edge": "length_start",
+            "name": "Începutul lungimii",
+            "banding_type": "abs_2",
+            "length_mm": "397",
+            "net_length_per_piece_m": "0.397",
+            "total_net_length_m": "0.794"
+          },
+          {
+            "edge": "length_end",
+            "name": "Sfârșitul lungimii",
+            "banding_type": "abs_2",
+            "length_mm": "397",
+            "net_length_per_piece_m": "0.397",
+            "total_net_length_m": "0.794"
+          },
+          {
+            "edge": "width_start",
+            "name": "Începutul lățimii",
+            "banding_type": "abs_2",
+            "length_mm": "1996",
+            "net_length_per_piece_m": "1.996",
+            "total_net_length_m": "3.992"
+          },
+          {
+            "edge": "width_end",
+            "name": "Sfârșitul lățimii",
+            "banding_type": "abs_2",
+            "length_mm": "1996",
+            "net_length_per_piece_m": "1.996",
+            "total_net_length_m": "3.992"
+          }
+        ],
+        "net_length_per_piece_m": "4.786",
+        "total_net_length_m": "9.572"
+      }
+    ],
+    "totals_by_type": {
+      "abs_0_4_total_m": "0",
+      "abs_2_total_m": "17.392"
+    },
+    "total_net_length_m": "17.392",
+    "procurement_allowance_m": "0",
+    "edge_convention": "length_start și length_end sunt la capetele axei lungimii și măsoară width_mm. width_start și width_end sunt la capetele axei lățimii și măsoară length_mm. La laterale, capac, bază și polițe, width_start desemnează muchia frontală.",
+    "assumptions": [
+      "Reguli de cantare provizorii pentru profilul FORMA v1.",
+      "Lateralele, capacul, baza și polițele primesc ABS de 2 mm pe muchia frontală.",
+      "Ușile primesc ABS de 2 mm pe toate cele patru muchii.",
+      "ABS de 0,4 mm este suportat de model, cu zero muchii atribuite în profilul curent.",
+      "Cantitățile sunt nete. Adaosul de aprovizionare este zero, iar cotele de debitare rămân cele calculate pentru panouri."
+    ]
+  },
+  "hardware": {
+    "items": [
+      {
+        "id": "hinges",
+        "name": "Balamale",
+        "quantity": 8,
+        "unit": "buc.",
+        "calculation_rule": "4 balamale/ușă pentru înălțimea de 1996 mm × 2 uși.",
+        "is_estimate": true
+      },
+      {
+        "id": "shelf_supports",
+        "name": "Suporturi pentru polițe",
+        "quantity": 12,
+        "unit": "buc.",
+        "calculation_rule": "3 polițe reglabile × 4 suporturi.",
+        "is_estimate": false
+      },
+      {
+        "id": "handles",
+        "name": "Mânere",
+        "quantity": 2,
+        "unit": "buc.",
+        "calculation_rule": "2 uși × 1 mâner.",
+        "is_estimate": false
+      },
+      {
+        "id": "cabinet_connectors",
+        "name": "Conectori pentru corp",
+        "quantity": 8,
+        "unit": "buc.",
+        "calculation_rule": "4 conectori pentru capac și 4 pentru bază. Polițele reglabile folosesc suporturi.",
+        "is_estimate": false
+      },
+      {
+        "id": "hdf_fasteners",
+        "name": "Fixări pentru spatele HDF",
+        "quantity": 40,
+        "unit": "buc.",
+        "calculation_rule": "2 × (ceil(800 / 150) + ceil(2000 / 150)) × 1 spate HDF = 40 fixări. Colțurile sunt numărate o singură dată.",
+        "is_estimate": true
+      }
+    ],
+    "total_item_count": 70,
+    "assumptions": [
+      "Estimare preliminară de feronerie pentru profilul FORMA v1.",
+      "Balamale pe ușă, după înălțimea efectivă a panoului: până la 900 mm inclusiv — 2; până la 1600 mm inclusiv — 3; până la 2200 mm inclusiv — 4; peste 2200 mm — 5.",
+      "Alegerea finală a balamalelor depinde de greutatea, lățimea și materialul ușii, precum și de specificațiile producătorului.",
+      "Toate polițele configurate sunt considerate reglabile și folosesc câte 4 suporturi.",
+      "Fiecare ușă folosește un mâner. Corpul folosește 4 conectori la capac și 4 la bază.",
+      "Fixările HDF sunt estimate pe fiecare latură, cu pas țintă maxim de 150 mm și colțuri numărate o singură dată.",
+      "Poziționarea și alegerea fixărilor HDF se verifică la montaj."
+    ]
+  }
 }

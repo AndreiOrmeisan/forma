@@ -82,3 +82,47 @@ test("result rendering includes exact areas, separated materials and an accessib
   assert.ok(markup.includes(fixture.construction_profile.name));
   for (const assumption of fixture.construction_profile.assumptions) assert.ok(markup.includes(assumption));
 });
+
+test("new estimate sections render exact net lengths and preliminary hardware labels", () => {
+  const markup = renderToStaticMarkup(React.createElement(WardrobeCalculationDetails, { result: fixture }));
+  assert.match(markup, /Canturi ABS/);
+  assert.match(markup, /17,392/);
+  assert.match(markup, /ABS 0,4 mm/);
+  assert.match(markup, /Total net de cant/);
+  assert.match(markup, /Adaos de aprovizionare separat · 0 m/);
+  assert.match(markup, /Feronerie/);
+  assert.match(markup, /Estimare preliminară/);
+  assert.match(markup, /Total elemente · 70 buc/);
+  assert.ok((markup.match(/<details/g) || []).length >= 4);
+  assert.ok(!markup.includes("<details open"));
+  for (const item of fixture.hardware.items) {
+    assert.ok(markup.includes(item.name));
+    assert.ok(markup.includes(item.calculation_rule));
+  }
+  assert.ok(markup.includes(fixture.edge_banding.edge_convention));
+});
+
+test("edge details and hardware must be complete and match the cutting panel metadata", () => {
+  for (const mutate of [
+    response => { delete response.edge_banding; },
+    response => { delete response.hardware; },
+    response => { response.edge_banding.totals_by_type.abs_2_total_m = 17.392; },
+    response => { response.edge_banding.panel_edges[0].edges.pop(); },
+    response => { response.edge_banding.panel_edges[0].quantity = 1; },
+    response => { response.edge_banding.panel_edges[0].edges[0].banding_type = "abs_2"; },
+    response => { response.panels.find(panel => panel.material === "HDF").edges = response.panels[0].edges; },
+    response => { response.hardware.items[0].quantity = -1; },
+    response => { response.hardware.items.pop(); },
+  ]) {
+    const invalid = structuredClone(fixture);
+    mutate(invalid);
+    assert.equal(isWardrobeCalculationResult(invalid), false);
+  }
+});
+
+test("a partial calculation response is rejected instead of displayed", async context => {
+  const partial = structuredClone(fixture);
+  delete partial.hardware;
+  context.mock.method(globalThis, "fetch", async () => Response.json(partial));
+  await assert.rejects(calculateWardrobe(fixture.input_configuration, new AbortController().signal), /nu este valid/);
+});

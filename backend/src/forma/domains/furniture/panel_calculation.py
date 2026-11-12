@@ -9,6 +9,9 @@ from forma.domains.furniture.schemas import (
     WardrobeCalculationResult,
 )
 from forma.domains.furniture.wardrobe_geometry import PROFILE, calculate_panel_geometry
+from forma.domains.furniture.edge_banding_rules import panel_edge_rules
+from forma.domains.furniture.edge_banding import calculate_edge_banding
+from forma.domains.furniture.hardware import calculate_hardware
 
 
 def calculate_wardrobe(request: ConfirmedWardrobeConfiguration) -> WardrobeCalculationResult:
@@ -19,6 +22,7 @@ def calculate_wardrobe(request: ConfirmedWardrobeConfiguration) -> WardrobeCalcu
             unit_area = geometry.length_mm * geometry.width_mm / Decimal("1000000")
             panels.append(Panel(
                 **geometry.model_dump(),
+                edges=panel_edge_rules(geometry),
                 unit_area_m2=unit_area,
                 area_m2=unit_area * geometry.quantity,
             ))
@@ -33,4 +37,6 @@ def calculate_wardrobe(request: ConfirmedWardrobeConfiguration) -> WardrobeCalcu
                 total_panel_count=sum(panel.quantity for panel in panels),
             ),
             warnings=("Suprafețele sunt nete și se referă la piesele din listă, înainte de optimizarea pe foi.",),
+            edge_banding=calculate_edge_banding(tuple(panels)),
+            hardware=calculate_hardware(tuple(panels)),
         )

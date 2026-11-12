@@ -60,11 +60,85 @@ class PanelGeometry(BaseModel):
     orientation: Literal["unspecified"] = "unspecified"
 
 
+EdgeBandingType = Literal["none", "abs_0_4", "abs_2"]
+EdgeName = Literal["length_start", "length_end", "width_start", "width_end"]
+NonNegativeDecimal = Annotated[Decimal, Field(ge=0, allow_inf_nan=False)]
+
+
+class PanelEdges(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    length_start: EdgeBandingType = "none"
+    length_end: EdgeBandingType = "none"
+    width_start: EdgeBandingType = "none"
+    width_end: EdgeBandingType = "none"
+
+
 class Panel(PanelGeometry):
     unit_area_m2: Annotated[Decimal, Field(gt=0, allow_inf_nan=False)]
     area_m2: Annotated[Decimal, Field(gt=0, allow_inf_nan=False)] = Field(
         description="Net area of this panel row, including quantity."
     )
+    edges: PanelEdges | None = None
+
+
+class EdgeDetail(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    edge: EdgeName
+    name: str
+    banding_type: EdgeBandingType
+    length_mm: Annotated[Decimal, Field(gt=0, allow_inf_nan=False)]
+    net_length_per_piece_m: NonNegativeDecimal
+    total_net_length_m: NonNegativeDecimal
+
+
+class PanelEdgeDetails(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    panel_id: str
+    name: str
+    quantity: Annotated[int, Field(strict=True, gt=0)]
+    edges: tuple[EdgeDetail, EdgeDetail, EdgeDetail, EdgeDetail]
+    net_length_per_piece_m: NonNegativeDecimal
+    total_net_length_m: NonNegativeDecimal
+
+
+class EdgeBandingTotals(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    abs_0_4_total_m: NonNegativeDecimal
+    abs_2_total_m: NonNegativeDecimal
+
+
+class EdgeBandingResult(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    panel_edges: tuple[PanelEdgeDetails, ...]
+    totals_by_type: EdgeBandingTotals
+    total_net_length_m: NonNegativeDecimal
+    procurement_allowance_m: NonNegativeDecimal = Decimal("0")
+    edge_convention: str
+    assumptions: tuple[str, ...]
+
+
+class HardwareItem(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    id: Literal["hinges", "shelf_supports", "handles", "cabinet_connectors", "hdf_fasteners"]
+    name: str
+    quantity: Annotated[int, Field(strict=True, ge=0)]
+    unit: Literal["buc."] = "buc."
+    calculation_rule: str
+    is_estimate: bool
+
+
+class HardwareResult(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    items: tuple[HardwareItem, ...]
+    total_item_count: Annotated[int, Field(strict=True, ge=0)]
+    assumptions: tuple[str, ...]
 
 
 class CalculationTotals(BaseModel):
@@ -83,3 +157,5 @@ class WardrobeCalculationResult(BaseModel):
     panels: tuple[Panel, ...]
     totals: CalculationTotals
     warnings: tuple[str, ...]
+    edge_banding: EdgeBandingResult
+    hardware: HardwareResult

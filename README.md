@@ -2,7 +2,7 @@
 
 FORMA is a multi-domain estimation platform. Furniture is the first implemented domain. Shared platform functionality must remain domain-agnostic, while calculation rules and domain-specific validation must remain isolated.
 
-The current POC focuses on particleboard (PAL) wardrobes from photographs of hand-drawn sketches. The frontend provides domain selection, sketch upload, mock review and editing, SVG preview, deterministic cutting lists, and an empty projects page. The backend exposes application health, mock interpretation, and exact panel geometry calculations.
+The current POC focuses on particleboard (PAL) wardrobes from photographs of hand-drawn sketches. The frontend provides domain selection, sketch upload, mock review and editing, SVG preview, cutting lists, edge banding, preliminary hardware estimates, and an empty projects page. The backend owns all deterministic material and hardware calculations.
 
 ## Requirements
 
@@ -95,6 +95,20 @@ The endpoint rejects missing or false confirmation, invalid configuration, and m
 Decimal arithmetic preserves fractional dimensions such as a 397.5 mm door for an 801 mm wide wardrobe with two doors. Decimal dimensions and areas are serialized as JSON strings. A panel's `unit_area_m2` is its single-piece net area, while `area_m2` includes its quantity. PAL and HDF totals are separate. The standard two-door wardrobe above produces 6.162224 m² PAL, 1.6 m² HDF, and 10 pieces.
 
 The backend calculation requires only confirmed dimensions and counts. The frontend displays server results with exact decimal formatting and recovery/retry states. Run `python -m pytest` in `backend/` and `npm.cmd test` in `frontend/` for the corresponding tests. The frontend calculation fixture is generated from the Python engine and is used only by tests.
+
+### Edge banding and hardware, FORMA v1
+
+The same calculation endpoint adds `edge_banding` and `hardware`. Existing panel dimensions, quantities, areas, and material totals retain their meaning. All estimates use the cutting-list panels from the same calculation. A failure in either new calculation fails the complete request.
+
+Each PAL panel includes an `edges` object with four keys. With a length axis L and width axis W, `length_start` and `length_end` are the boundaries at the start/end of L and each measures `width_mm`. `width_start` and `width_end` are the boundaries at the start/end of W and each measures `length_mm`. For sides, top, bottom, and shelves, `width_start` denotes the front edge. The frontend renders this backend metadata directly.
+
+The provisional profile applies ABS 2 mm to that front edge and to all four door edges. HDF has `edges: null` and is excluded from edge totals. The model supports `none`, `abs_0_4`, and `abs_2`, with zero ABS 0.4 mm assignments by default. Each edge exposes its physical length, net length per piece, and quantity-inclusive length. The response also exposes panel-level subtotals, exact meter totals by banding type, and total net meters. Procurement allowance is separately fixed at zero in this sprint. Banding quantities are independent of cutting dimensions.
+
+Hardware uses the actual door height after the existing gaps. Hinges per door are 2 through 900 mm, 3 through 1600 mm, 4 through 2200 mm, and 5 above 2200 mm. Every configured shelf is adjustable with four supports. Each door receives one handle, and the top/bottom assembly uses four connectors per horizontal panel.
+
+For an HDF panel of length L and width W, the provisional fastener count per panel is `2 × (ceil(L / 150) + ceil(W / 150))`. Each side is divided into intervals at most 150 mm long and shared corners are counted once. The count is multiplied by the number of HDF panels. This is a preliminary quantity estimate. Hinge selection also depends on door weight, width, material, and manufacturer specifications. Final fastener positioning and selection require installation verification.
+
+For the standard wardrobe, ABS 2 mm is derived as `(2 × 2000 + (2 + 3) × 764 + 2 × 2 × (1996 + 397)) / 1000 = 17.392 m`. ABS 0.4 mm and procurement allowance are zero. Hardware is 8 hinges, 12 shelf supports, 2 handles, 8 cabinet connectors, and 40 HDF fasteners, totaling 70 pieces. Decimal quantities remain exact strings in JSON. The result page displays the two new sections with expandable details and provisional assumptions.
 
 ## Environment configuration
 

@@ -1,4 +1,8 @@
 import { isWardrobeConfiguration, wardrobeFields, type WardrobeConfiguration } from "./wardrobe-configuration";
+import {
+  isEdgeBandingResult, isHardwareResult, isPanelEdges, isPositiveDecimal, isRecord,
+  type EdgeBandingResult, type HardwareResult, type PanelEdges,
+} from "./wardrobe-estimates";
 
 export type CuttingPanel = {
   id: string;
@@ -11,6 +15,7 @@ export type CuttingPanel = {
   unit_area_m2: string;
   area_m2: string;
   orientation: "unspecified";
+  edges: PanelEdges | null;
 };
 
 export type WardrobeCalculationResult = {
@@ -28,35 +33,40 @@ export type WardrobeCalculationResult = {
     total_panel_count: number;
   };
   warnings: string[];
+  edge_banding: EdgeBandingResult;
+  hardware: HardwareResult;
 };
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function isPositiveDecimal(value: unknown): value is string {
-  return typeof value === "string" && /^\d+(?:\.\d+)?$/.test(value) && /[1-9]/.test(value);
-}
 
 function isPanel(value: unknown): value is CuttingPanel {
   if (!isRecord(value)) return false;
   return typeof value.id === "string" && typeof value.name === "string" &&
     (value.material === "PAL" || value.material === "HDF") &&
     [value.thickness_mm, value.length_mm, value.width_mm, value.unit_area_m2, value.area_m2].every(isPositiveDecimal) &&
-    Number.isSafeInteger(value.quantity) && Number(value.quantity) > 0 && value.orientation === "unspecified";
+    Number.isSafeInteger(value.quantity) && Number(value.quantity) > 0 && value.orientation === "unspecified" &&
+    (value.material === "HDF" ? value.edges === null : isPanelEdges(value.edges));
 }
 
 export function isWardrobeCalculationResult(value: unknown): value is WardrobeCalculationResult {
   if (!isRecord(value) || !isRecord(value.construction_profile) || !isRecord(value.totals)) return false;
   const profile = value.construction_profile;
-  return profile.id === "forma-wardrobe-poc-v1" && typeof profile.name === "string" &&
+  const valid = profile.id === "forma-wardrobe-poc-v1" && typeof profile.name === "string" &&
     profile.interior_bays_count === 1 && Array.isArray(profile.assumptions) && profile.assumptions.every(item => typeof item === "string") &&
     isWardrobeConfiguration(value.input_configuration) &&
     Array.isArray(value.panels) && value.panels.length > 0 && value.panels.every(isPanel) &&
     new Set(value.panels.map(panel => panel.id)).size === value.panels.length &&
     isPositiveDecimal(value.totals.total_pal_area_m2) && isPositiveDecimal(value.totals.total_hdf_area_m2) &&
     Number.isSafeInteger(value.totals.total_panel_count) && Number(value.totals.total_panel_count) > 0 &&
-    Array.isArray(value.warnings) && value.warnings.every(item => typeof item === "string");
+    Array.isArray(value.warnings) && value.warnings.every(item => typeof item === "string") &&
+    isEdgeBandingResult(value.edge_banding) && isHardwareResult(value.hardware);
+  if (!valid) return false;
+  const panels = value.panels as CuttingPanel[];
+  const edgeBanding = value.edge_banding as EdgeBandingResult;
+  return edgeBanding.panel_edges.length === panels.filter(panel => panel.material === "PAL").length &&
+    edgeBanding.panel_edges.every(detail => {
+      const panel = panels.find(panel => panel.id === detail.panel_id);
+      return panel?.material === "PAL" && panel.quantity === detail.quantity &&
+        detail.edges.every(edge => panel.edges?.[edge.edge] === edge.banding_type);
+    });
 }
 
 export function formatExactDecimal(value: string): string {

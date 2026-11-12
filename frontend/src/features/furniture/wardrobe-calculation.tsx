@@ -5,6 +5,7 @@ import { LoaderCircle } from "lucide-react";
 import { calculateWardrobe, formatExactDecimal, type WardrobeCalculationResult } from "./calculate-wardrobe";
 import type { WardrobeConfiguration } from "./wardrobe-configuration";
 import styles from "./wardrobe-result.module.css";
+import { EdgeBandingSection, HardwareSection } from "./wardrobe-estimate-sections";
 
 export function WardrobeCalculation({ configuration }: { configuration: WardrobeConfiguration }) {
   const [result, setResult] = useState<WardrobeCalculationResult | null>(null);
@@ -76,12 +77,14 @@ export function WardrobeCalculationDetails({ result }: { result: WardrobeCalcula
           </table>
         </div>
       </section>
-      <section className={styles.card} aria-labelledby="construction-title">
-        <h2 id="construction-title">Profil de construcție · {result.construction_profile.name}</h2>
+      <EdgeBandingSection result={result.edge_banding} />
+      <HardwareSection result={result.hardware} />
+      <details className={`${styles.card} ${styles.profileDetails}`}>
+        <summary>Profil de construcție · {result.construction_profile.name}</summary>
         <ul className={styles.assumptions}>
           {result.construction_profile.assumptions.map(assumption => <li key={assumption}>{assumption}</li>)}
         </ul>
-      </section>
+      </details>
       {result.warnings.length > 0 && (
         <aside className={styles.notes} aria-label="Observații privind calculul">
           {result.warnings.map(warning => <p key={warning}>{warning}</p>)}

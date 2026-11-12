@@ -34,6 +34,12 @@ The furniture frontend keeps interpretation, editable draft, and confirmed confi
 
 The profile has full-height sides, top/bottom and shelves between the sides, one continuous interior bay, 18 mm PAL, a 50 mm shelf setback, 2 mm door gaps, and a separate surface-mounted 3 mm HDF back. Decimal dimensions and areas cross the JSON boundary as strings. Each row exposes both single-piece and quantity-inclusive area. Orientation remains unspecified. The frontend formats these values without calculating or rounding them. A confirmed-snapshot change discards the previous request/result. The SVG elevation remains a schematic configuration aid.
 
+`edge_banding_rules.py` assigns the four physical edges in the panel cutting coordinate frame. `length_start/end` measure the panel width, and `width_start/end` measure its length. `width_start` is the front of sides, top, bottom, and shelves. These fronts and all door edges receive ABS 2 mm. HDF stays outside banding totals. `edge_banding.py` derives exact meter quantities from those dimensions and quantities, with separate type totals and zero procurement allowance.
+
+`hardware_rules.py` defines provisional hinge thresholds and HDF perimeter intervals. `hardware.py` consumes the same panels to estimate hinges, shelf supports, handles, top/bottom connectors, and back fasteners. Actual door panel height determines hinge count. HDF fasteners use `2 × (ceil(L / 150) + ceil(W / 150))` per back panel, counting each corner once. Their selection and positioning are preliminary.
+
+The existing calculation service composes geometry, area, edge banding, and hardware atomically in one Decimal context. It produces the existing response fields plus typed `edge_banding` and `hardware` sections. The frontend validates the complete response and its panel/edge associations before rendering, with expandable rule details. No geometry or estimation formulas are duplicated in the frontend.
+
 ## Future backend boundaries
 
 Introduce the following concrete packages as their first functionality is implemented.
