@@ -9,7 +9,7 @@ export const maxImageBytes = 10 * 1024 * 1024;
 const supportedTypes = ["image/jpeg", "image/png", "image/webp"];
 const formatError = "Format neacceptat. Alege o imagine JPEG, PNG sau WebP. Pentru HEIC, exportă mai întâi fotografia ca JPEG.";
 
-function detectImageType(bytes: Uint8Array): string | null {
+export function detectImageType(bytes: Uint8Array): string | null {
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
     return "image/jpeg";
   }

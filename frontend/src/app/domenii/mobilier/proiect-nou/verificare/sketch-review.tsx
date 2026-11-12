@@ -1,41 +1,74 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ImagePlus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, LoaderCircle } from "lucide-react";
 import { useImageDraft } from "@/components/image-upload/image-draft-context";
 import { ImagePreview } from "@/components/image-upload/image-preview";
 import { furnitureRoutes } from "@/config/domains";
-import styles from "../flow.module.css";
+import { analyzeSketch } from "@/features/furniture/analyze-sketch";
+import { useWardrobeProject } from "@/features/furniture/wardrobe-project-context";
+import { WardrobeForm } from "@/features/furniture/wardrobe-form";
+import { ProjectRecovery } from "../project-recovery";
+import styles from "@/features/furniture/review.module.css";
 
 export function SketchReview() {
   const { image } = useImageDraft();
+  const { interpretation, acceptInterpretation } = useWardrobeProject();
+  const [requestError, setRequestError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
-  if (!image) {
-    return (
-      <section className={styles.recovery} aria-labelledby="recovery-title">
-        <ImagePlus size={36} strokeWidth={1.4} aria-hidden="true" />
-        <h1 id="recovery-title">Adaugă din nou schița.</h1>
-        <p>Fotografia este păstrată temporar. După reîncărcarea paginii sau deschiderea directă a acestui link, trebuie să o selectezi din nou.</p>
-        <Link href={furnitureRoutes.newProject} className={styles.returnLink}>Încarcă o schiță</Link>
-      </section>
-    );
-  }
+  useEffect(() => {
+    if (!image || interpretation) return;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => {
+      controller.abort();
+      setRequestError("Serverul local răspunde prea lent. Încearcă din nou.");
+    }, 20000);
+    analyzeSketch(image.file, controller.signal)
+      .then(data => { if (!controller.signal.aborted) acceptInterpretation(data); })
+      .catch(error => {
+        if (!controller.signal.aborted) setRequestError(error instanceof Error ? error.message : "Datele demonstrative nu pot fi încărcate.");
+      })
+      .finally(() => window.clearTimeout(timeout));
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [image, interpretation, acceptInterpretation, attempt]);
+
+  if (!image) return <ProjectRecovery />;
 
   return (
-    <section className={styles.flowContent} aria-labelledby="review-title">
+    <section className={styles.review} aria-labelledby="review-title">
       <div className={styles.introduction}>
-        <h1 id="review-title">Schița ta, pregătită<span>.</span></h1>
-        <p>Verifică dacă fotografia este clară și dimensiunile se pot citi.</p>
+        <p className={styles.eyebrow}>MOBILIER / DULAP</p>
+        <h1 id="review-title">Așa arată dulapul tău?</h1>
+        <p>Compară valorile cu schița și verifică dimensiunile în milimetri înainte de confirmare.</p>
       </div>
-      <div className={styles.reviewContent}>
-        <ImagePreview image={image} />
-        <div className={styles.reviewNote}>
-          <h2>Următorul pas, în curând</h2>
-          <p>Analiza AI va fi implementată într-un sprint viitor. Fotografia ta este disponibilă temporar în acest flux.</p>
+      <aside className={styles.mockNotice} aria-label="Date demonstrative">
+        <h2>Interpretare demonstrativă · Mock</h2>
+        <p>Valorile inițiale sunt un exemplu fix, independent de conținutul fotografiei. Ajustează-le pentru dulapul tău.</p>
+      </aside>
+      <div className={styles.reviewGrid}>
+        <div className={styles.sketchPanel}>
+          <ImagePreview image={image} />
+          <Link href={furnitureRoutes.newProject} className={styles.backLink}>
+            <ArrowLeft size={16} aria-hidden="true" /> Înapoi la fotografie
+          </Link>
         </div>
-        <Link href={furnitureRoutes.newProject} className={styles.returnLink}>
-          <ArrowLeft size={18} aria-hidden="true" /> Înapoi la fotografie
-        </Link>
+        {interpretation ? <WardrobeForm /> : (
+          <div className={styles.requestState}>
+            {requestError ? (
+              <>
+                <p role="alert">{requestError}</p>
+                <button type="button" className={styles.retryButton} onClick={() => { setRequestError(null); setAttempt(value => value + 1); }}>Încearcă din nou</button>
+              </>
+            ) : (
+              <p role="status"><LoaderCircle size={20} aria-hidden="true" /> Încărcăm datele demonstrative…</p>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

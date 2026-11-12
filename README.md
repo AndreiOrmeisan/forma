@@ -2,7 +2,7 @@
 
 FORMA is a multi-domain estimation platform. Furniture is the first implemented domain. Shared platform functionality must remain domain-agnostic, while calculation rules and domain-specific validation must remain isolated.
 
-The current POC focuses on particleboard (PAL) wardrobes from photographs of hand-drawn sketches. The frontend provides domain selection, the furniture homepage, an empty projects page, and a new-project placeholder. The backend currently exposes application health.
+The current POC focuses on particleboard (PAL) wardrobes from photographs of hand-drawn sketches. The frontend provides domain selection, the furniture homepage, sketch upload, mock review and editing, a confirmed-configuration placeholder, and an empty projects page. The backend exposes application health and deterministic mock interpretation.
 
 ## Requirements
 
@@ -26,7 +26,9 @@ Open http://localhost:3000 to select a domain.
 | --- | --- |
 | `/` | Domain selection dashboard |
 | `/domenii/mobilier` | Furniture homepage and persisted mode selector |
-| `/domenii/mobilier/proiect-nou` | New furniture project placeholder |
+| `/domenii/mobilier/proiect-nou` | Validated sketch upload and camera input |
+| `/domenii/mobilier/proiect-nou/verificare` | Mock wardrobe interpretation and editable configuration |
+| `/domenii/mobilier/proiect-nou/rezultat` | Confirmed configuration placeholder |
 | `/domenii/mobilier/proiecte` | Furniture projects empty state |
 | `/proiect-nou` | Permanent redirect to the furniture new-project route |
 
@@ -36,6 +38,7 @@ Open http://localhost:3000 to select a domain.
 npm.cmd run lint
 npm.cmd run typecheck
 npm.cmd run build
+npm.cmd test
 ```
 
 ## Backend
@@ -58,6 +61,14 @@ Invoke-RestMethod http://localhost:8000/api/health
 ```
 
 The health endpoint returns `{"status":"ok"}`. Interactive API documentation is at http://localhost:8000/docs.
+
+## Wardrobe review POC
+
+Upload a sketch, then review and edit the demonstration configuration under `/domenii/mobilier/proiect-nou/verificare`. Start both applications for this workflow. The frontend uses `NEXT_PUBLIC_API_BASE_URL`, defaulting to `http://localhost:8000`.
+
+`POST /api/v1/furniture/analyze-sketch` accepts a multipart `file` in JPEG, PNG, or WebP format up to 10 MB. The backend validates the declared MIME type and decodes the image, then returns fixed example wardrobe data with `is_mock: true`, `requires_confirmation: true`, and a demonstration notice. Interpretation is deterministic and independent of image content. External AI requests and paid AI integrations are prohibited in the current project.
+
+Editable POC ranges are centralized in `frontend/src/features/furniture/wardrobe-configuration.ts`. The original response, editable draft, and confirmed configuration are separate. Confirmation opens `/domenii/mobilier/proiect-nou/rezultat`, which displays the configuration and a material-estimation placeholder. State stays in memory and resets when the image changes or the page reloads. The upload and review screens provide recovery links when that state is missing.
 
 ## Environment configuration
 

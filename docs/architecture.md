@@ -14,7 +14,9 @@ The monorepo contains independently installed Next.js and FastAPI applications. 
 | --- | --- |
 | `/` | Platform domain selection |
 | `/domenii/mobilier` | Existing furniture homepage |
-| `/domenii/mobilier/proiect-nou` | New furniture project placeholder |
+| `/domenii/mobilier/proiect-nou` | Validated sketch upload and camera input |
+| `/domenii/mobilier/proiect-nou/verificare` | Deterministic mock interpretation and editable configuration |
+| `/domenii/mobilier/proiect-nou/rezultat` | Confirmed configuration placeholder |
 | `/domenii/mobilier/proiecte` | Furniture projects empty state |
 | `/proiect-nou` | Permanent redirect preserving earlier links |
 
@@ -22,7 +24,9 @@ The monorepo contains independently installed Next.js and FastAPI applications. 
 
 Furniture components remain reusable at their existing paths. Domain boundaries are currently established through routing and configuration. Moving presentation components into domain directories can follow when another implemented domain gives that separation a concrete use.
 
-The Python package uses a `src/forma` layout. `main.py` creates the application and registers middleware and routes. `config.py` reads CORS configuration. `api/health.py` owns `GET /api/health`, returning `{"status":"ok"}`. Existing tests cover health and local frontend CORS. These modules already provide a small domain-agnostic foundation, so this sprint requires documentation of backend boundaries without additional Python modules.
+The Python package uses a `src/forma` layout. `main.py` creates the application and registers middleware and routes. `config.py` reads CORS configuration. `api/health.py` owns `GET /api/health`, returning `{"status":"ok"}`. `api/furniture.py` exposes `POST /api/v1/furniture/analyze-sketch`. Shared upload validation checks MIME type, size, and decoding. The concrete furniture mock returns fixed demonstration values and confirmation flags. Current interpretation uses deterministic mock data and performs no external AI requests.
+
+The furniture frontend keeps interpretation, editable draft, and confirmed configuration in a domain-specific provider inside the generic image provider. Replacing an image clears derived domain state while preserving the upload component lifecycle. Edit validation is centralized in `features/furniture/wardrobe-configuration.ts`. A result route displays confirmed values. State stays in memory and refreshes show recovery links.
 
 ## Future backend boundaries
 

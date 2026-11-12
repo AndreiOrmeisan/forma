@@ -27,6 +27,7 @@ export const furnitureRoutes = {
   home: furnitureDomain.route,
   newProject: `${furnitureDomain.route}/proiect-nou`,
   reviewProject: `${furnitureDomain.route}/proiect-nou/verificare`,
+  resultProject: `${furnitureDomain.route}/proiect-nou/rezultat`,
   projects: `${furnitureDomain.route}/proiecte`,
 } as const;
 

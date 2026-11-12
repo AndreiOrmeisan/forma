@@ -15,7 +15,7 @@
 }
 
 .emptyPreview, .imageFrame {
-  aspect-ratio: 4 / 3;
+  aspect-ratio: var(--image-preview-ratio, 4 / 3);
   width: 100%;
   border-radius: 14px;
   overflow: hidden;
