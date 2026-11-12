@@ -16,7 +16,7 @@ The monorepo contains independently installed Next.js and FastAPI applications. 
 | `/domenii/mobilier` | Existing furniture homepage |
 | `/domenii/mobilier/proiect-nou` | Validated sketch upload and camera input |
 | `/domenii/mobilier/proiect-nou/verificare` | Deterministic mock interpretation and editable configuration |
-| `/domenii/mobilier/proiect-nou/rezultat` | Confirmed configuration placeholder |
+| `/domenii/mobilier/proiect-nou/rezultat` | Confirmed configuration, cutting list, and separate net PAL/HDF areas |
 | `/domenii/mobilier/proiecte` | Furniture projects empty state |
 | `/proiect-nou` | Permanent redirect preserving earlier links |
 
@@ -26,7 +26,13 @@ Furniture components remain reusable at their existing paths. Domain boundaries 
 
 The Python package uses a `src/forma` layout. `main.py` creates the application and registers middleware and routes. `config.py` reads CORS configuration. `api/health.py` owns `GET /api/health`, returning `{"status":"ok"}`. `api/furniture.py` exposes `POST /api/v1/furniture/analyze-sketch`. Shared upload validation checks MIME type, size, and decoding. The concrete furniture mock returns fixed demonstration values and confirmation flags. Current interpretation uses deterministic mock data and performs no external AI requests.
 
-The furniture frontend keeps interpretation, editable draft, and confirmed configuration in a domain-specific provider inside the generic image provider. Replacing an image clears derived domain state while preserving the upload component lifecycle. Edit validation is centralized in `features/furniture/wardrobe-configuration.ts`. A result route displays confirmed values. State stays in memory and refreshes show recovery links.
+The furniture frontend keeps interpretation, editable draft, and confirmed configuration in a domain-specific provider inside the generic image provider. Replacing an image clears derived domain state while preserving the upload component lifecycle. Edit validation is centralized in `features/furniture/wardrobe-configuration.ts`. The result route sends the confirmed snapshot to the calculation endpoint and displays the returned values. State stays in memory and refreshes show recovery links.
+
+### Wardrobe calculation boundary
+
+`domains/furniture/schemas.py` owns the shared backend wardrobe input and calculation output contracts. `wardrobe_geometry.py` defines the fixed FORMA POC v1 profile and positive panel dimensions. `panel_calculation.py` uses an isolated Decimal context for exact areas and separate PAL/HDF totals. `POST /api/v1/furniture/calculate` requires explicit boolean confirmation and accepts configuration without an image. Mock-response metadata is rejected as input.
+
+The profile has full-height sides, top/bottom and shelves between the sides, one continuous interior bay, 18 mm PAL, a 50 mm shelf setback, 2 mm door gaps, and a separate surface-mounted 3 mm HDF back. Decimal dimensions and areas cross the JSON boundary as strings. Each row exposes both single-piece and quantity-inclusive area. Orientation remains unspecified. The frontend formats these values without calculating or rounding them. A confirmed-snapshot change discards the previous request/result. The SVG elevation remains a schematic configuration aid.
 
 ## Future backend boundaries
 

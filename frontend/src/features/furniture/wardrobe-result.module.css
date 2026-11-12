@@ -1,0 +1,188 @@
+.result {
+  display: grid;
+  min-width: 0;
+  gap: 24px;
+}
+
+.configurationSummary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 22px;
+}
+
+.configurationSummary dt {
+  color: #706a62;
+  font-size: 12px;
+}
+
+.configurationSummary dd {
+  margin-top: 6px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.totals {
+  display: grid;
+  border: 1px solid #e9e5df;
+  border-radius: 20px;
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.totals > div {
+  min-width: 0;
+  padding: 22px;
+}
+
+.totals > div + div {
+  border-top: 1px solid #e9e5df;
+}
+
+.totals h2 {
+  color: #706a62;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.totals p {
+  margin-top: 10px;
+  font-size: 25px;
+  letter-spacing: -0.7px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.totals p span {
+  font-size: 14px;
+  color: #706a62;
+  letter-spacing: 0;
+}
+
+.card, .requestState {
+  min-width: 0;
+  padding: 22px 18px;
+  border: 1px solid #e9e5df;
+  border-radius: 20px;
+  background: var(--color-surface);
+}
+
+.sectionHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sectionHeader span, .tableHint {
+  color: #706a62;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.tableHint {
+  margin-top: 14px;
+}
+
+.tableScroller {
+  max-width: 100%;
+  margin-top: 20px;
+  overflow-x: auto;
+  border-radius: 8px;
+}
+
+.cuttingTable {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cuttingTable th, .cuttingTable td {
+  padding: 16px 12px;
+  border-bottom: 1px solid #e9e5df;
+  vertical-align: middle;
+}
+
+.cuttingTable thead th {
+  color: #706a62;
+  background: #f8f7f4;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.cuttingTable tbody th {
+  font-weight: 500;
+}
+
+.cuttingTable tbody th span {
+  display: block;
+  margin-top: 5px;
+  color: #706a62;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.cuttingTable td {
+  white-space: nowrap;
+}
+
+.assumptions {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  padding-left: 18px;
+  color: #62584c;
+  font-size: 13px;
+  line-height: 1.8;
+  list-style: disc;
+}
+
+.notes {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid #e5d5c5;
+  border-radius: 16px;
+  background: #eee3d7;
+  color: #62584c;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.requestState p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.retryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  padding: 12px 20px;
+  margin-top: 20px;
+  border-radius: 12px;
+  color: white;
+  background: var(--color-primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  background: #3c3731;
+}
+
+@media (min-width: 640px) {
+  .configurationSummary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .totals { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .totals > div + div { border-top: 0; border-left: 1px solid #e9e5df; }
+  .card { padding: 28px; }
+  .tableHint { display: none; }
+}

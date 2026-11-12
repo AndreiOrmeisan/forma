@@ -2,7 +2,7 @@
 
 FORMA is a multi-domain estimation platform. Furniture is the first implemented domain. Shared platform functionality must remain domain-agnostic, while calculation rules and domain-specific validation must remain isolated.
 
-The current POC focuses on particleboard (PAL) wardrobes from photographs of hand-drawn sketches. The frontend provides domain selection, the furniture homepage, sketch upload, mock review and editing, a confirmed-configuration placeholder, and an empty projects page. The backend exposes application health and deterministic mock interpretation.
+The current POC focuses on particleboard (PAL) wardrobes from photographs of hand-drawn sketches. The frontend provides domain selection, sketch upload, mock review and editing, SVG preview, deterministic cutting lists, and an empty projects page. The backend exposes application health, mock interpretation, and exact panel geometry calculations.
 
 ## Requirements
 
@@ -28,7 +28,7 @@ Open http://localhost:3000 to select a domain.
 | `/domenii/mobilier` | Furniture homepage and persisted mode selector |
 | `/domenii/mobilier/proiect-nou` | Validated sketch upload and camera input |
 | `/domenii/mobilier/proiect-nou/verificare` | Mock wardrobe interpretation and editable configuration |
-| `/domenii/mobilier/proiect-nou/rezultat` | Confirmed configuration placeholder |
+| `/domenii/mobilier/proiect-nou/rezultat` | Confirmed configuration, cutting list, and net PAL/HDF areas |
 | `/domenii/mobilier/proiecte` | Furniture projects empty state |
 | `/proiect-nou` | Permanent redirect to the furniture new-project route |
 
@@ -68,9 +68,33 @@ Upload a sketch, then review and edit the demonstration configuration under `/do
 
 `POST /api/v1/furniture/analyze-sketch` accepts a multipart `file` in JPEG, PNG, or WebP format up to 10 MB. The backend validates the declared MIME type and decodes the image, then returns fixed example wardrobe data with `is_mock: true`, `requires_confirmation: true`, and a demonstration notice. Interpretation is deterministic and independent of image content. External AI requests and paid AI integrations are prohibited in the current project.
 
-Editable POC ranges are centralized in `frontend/src/features/furniture/wardrobe-configuration.ts`. The original response, editable draft, and confirmed configuration are separate. Confirmation opens `/domenii/mobilier/proiect-nou/rezultat`, which displays the configuration and a material-estimation placeholder. State stays in memory and resets when the image changes or the page reloads. The upload and review screens provide recovery links when that state is missing.
+Editable POC ranges are centralized in `frontend/src/features/furniture/wardrobe-configuration.ts` and match the backend's shared `WardrobeConfiguration` schema. The original response, editable draft, and confirmed configuration are separate. Confirmation opens `/domenii/mobilier/proiect-nou/rezultat`, which requests a cutting list from the backend. State stays in memory and resets when the image changes or the page reloads. The upload and review screens provide recovery links when that state is missing.
 
 The review screen includes a live SVG front elevation driven by the editable draft. Switch between interior and door views independently of the form. Width and height remain proportional, depth is labeled separately, and panel thickness is schematic. Temporarily invalid input displays a validation state until the existing POC rules are satisfied.
+
+### Deterministic panel calculation
+
+`POST /api/v1/furniture/calculate` accepts an explicit confirmation and the existing configuration.
+
+```json
+{
+  "configuration": {
+    "width_mm": 800,
+    "height_mm": 2000,
+    "depth_mm": 600,
+    "doors_count": 2,
+    "shelves_count": 3,
+    "furniture_type": "wardrobe"
+  },
+  "confirmed": true
+}
+```
+
+The endpoint rejects missing or false confirmation, invalid configuration, and mock-response fields. It uses the fixed `forma-wardrobe-poc-v1` profile, which is returned with its construction assumptions. PAL is 18 mm, shelves are recessed by 50 mm, door gaps are 2 mm, and the surface-mounted HDF back is 3 mm. Two doors cover one continuous bay.
+
+Decimal arithmetic preserves fractional dimensions such as a 397.5 mm door for an 801 mm wide wardrobe with two doors. Decimal dimensions and areas are serialized as JSON strings. A panel's `unit_area_m2` is its single-piece net area, while `area_m2` includes its quantity. PAL and HDF totals are separate. The standard two-door wardrobe above produces 6.162224 m² PAL, 1.6 m² HDF, and 10 pieces.
+
+The backend calculation requires only confirmed dimensions and counts. The frontend displays server results with exact decimal formatting and recovery/retry states. Run `python -m pytest` in `backend/` and `npm.cmd test` in `frontend/` for the corresponding tests. The frontend calculation fixture is generated from the Python engine and is used only by tests.
 
 ## Environment configuration
 

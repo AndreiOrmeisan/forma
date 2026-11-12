@@ -4,7 +4,7 @@
 
 FORMA is a multi-domain estimation platform. Furniture is the first implemented domain. Shared platform functionality must remain domain-agnostic, while calculation rules and domain-specific validation must remain isolated.
 
-The current POC is exclusively focused on furniture and particleboard (PAL) wardrobes. Furniture currently has the homepage, sketch upload, deterministic mock review, editable configuration, confirmation placeholder, and projects empty state. Estimation functionality will be implemented in future tasks.
+The current POC is exclusively focused on furniture and particleboard (PAL) wardrobes. Furniture has sketch upload, deterministic mock review, editable configuration, an SVG preview, and a deterministic panel cutting list with separate net PAL/HDF areas.
 
 ## Architecture
 
@@ -14,7 +14,9 @@ The current POC is exclusively focused on furniture and particleboard (PAL) ward
 - `/` is the platform domain selector. Furniture routes live under `/domenii/mobilier`, with `/proiect-nou` and `/proiecte` children.
 - `frontend/src/config/domains.ts` is the single source for domain definitions, availability, and furniture routes. Unavailable domains have null routes and static cards.
 - The furniture layout owns its shared header and navigation. Preserve the existing Minimal Premium tokens, components, and `forma-mode` localStorage preference.
-- HTTP endpoints use the `/api` prefix. Current endpoints are `GET /api/health` and the multipart `POST /api/v1/furniture/analyze-sketch` mock.
+- HTTP endpoints use the `/api` prefix. Furniture exposes the multipart `POST /api/v1/furniture/analyze-sketch` mock and JSON `POST /api/v1/furniture/calculate`. Health remains `GET /api/health`.
+- Backend input validation is centralized in `domains/furniture/schemas.py`, shared by mock interpretation and panel calculation. Keep the frontend POC ranges aligned with this schema.
+- Calculation requires `{ configuration, confirmed: true }`, uses the fixed FORMA POC v1 profile, and is independent of the image and mock provider. Use Decimal arithmetic and JSON decimal strings. Panel `area_m2` includes quantity, `unit_area_m2` describes one piece, and HDF totals remain separate from PAL.
 - Wardrobe review rules live in `frontend/src/features/furniture/wardrobe-configuration.ts`. Keep image state generic and separate from furniture interpretation, editable draft, and confirmed configuration. Clear derived state when an image changes.
 - AI will produce structured interpretations. Deterministic Python domain logic will calculate geometry, materials, hardware, and costs.
 - Current interpretation must use deterministic mock data. Do not integrate paid AI APIs, install the OpenAI SDK, or make external AI requests.

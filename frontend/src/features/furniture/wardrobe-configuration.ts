@@ -46,15 +46,22 @@ export function validateWardrobeDraft(draft: WardrobeDraft) {
   return { errors, configuration };
 }
 
-export function isMockInterpretation(value: unknown): value is MockInterpretation {
+export function isWardrobeConfiguration(value: unknown): value is WardrobeConfiguration {
   if (!value || typeof value !== "object") return false;
   const data = value as Record<string, unknown>;
+  if (data.furniture_type !== "wardrobe") return false;
+  if (!wardrobeFields.every(field => typeof data[field] === "number" && Number.isSafeInteger(data[field]))) return false;
+  return validateWardrobeDraft(configurationToDraft(data as unknown as WardrobeConfiguration)).configuration !== null;
+}
+
+export function isMockInterpretation(value: unknown): value is MockInterpretation {
+  if (!isWardrobeConfiguration(value)) return false;
+  const data = value as unknown as Record<string, unknown>;
   if (
     data.is_mock !== true ||
     data.requires_confirmation !== true ||
     data.furniture_type !== "wardrobe" ||
     typeof data.notice !== "string"
   ) return false;
-  if (!wardrobeFields.every(field => typeof data[field] === "number" && Number.isSafeInteger(data[field]))) return false;
-  return validateWardrobeDraft(configurationToDraft(data as unknown as WardrobeConfiguration)).configuration !== null;
+  return true;
 }

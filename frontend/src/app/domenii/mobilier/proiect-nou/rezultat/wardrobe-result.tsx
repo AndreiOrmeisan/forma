@@ -8,12 +8,14 @@ import { wardrobeFields, wardrobeRules } from "@/features/furniture/wardrobe-con
 import { furnitureRoutes } from "@/config/domains";
 import { ProjectRecovery } from "../project-recovery";
 import styles from "@/features/furniture/review.module.css";
+import resultStyles from "@/features/furniture/wardrobe-result.module.css";
+import { WardrobeCalculation } from "@/features/furniture/wardrobe-calculation";
 
 export function WardrobeResult() {
   const { image } = useImageDraft();
   const { confirmed } = useWardrobeProject();
-  if (!image) return <ProjectRecovery />;
   if (!confirmed) {
+    if (!image) return <ProjectRecovery />;
     return (
       <section className={styles.review}>
         <h1>Confirmă mai întâi configurația.</h1>
@@ -26,12 +28,12 @@ export function WardrobeResult() {
     <section className={styles.review} aria-labelledby="result-title">
       <span className={styles.confirmationIcon}><Check size={25} aria-hidden="true" /></span>
       <div className={styles.introduction}>
-        <h1 id="result-title">Configurație confirmată.</h1>
-        <p>Estimarea materialelor va fi implementată într-un sprint viitor. Configurația este păstrată temporar în acest flux.</p>
+        <h1 id="result-title">Lista ta de debitare.</h1>
+        <p>Dimensiuni și suprafețe nete calculate din configurația confirmată, conform profilului FORMA POC v1.</p>
       </div>
       <div className={styles.formCard}>
-        <h2>Dulap</h2>
-        <dl className={styles.summary}>
+        <h2>Dulap · configurație confirmată</h2>
+        <dl className={resultStyles.configurationSummary}>
           {wardrobeFields.map(field => (
             <div key={field}>
               <dt>{wardrobeRules[field].label}</dt>
@@ -40,6 +42,7 @@ export function WardrobeResult() {
           ))}
         </dl>
       </div>
+      <WardrobeCalculation key={JSON.stringify(confirmed)} configuration={confirmed} />
       <Link href={furnitureRoutes.reviewProject} className={styles.backLink}>Modifică configurația</Link>
     </section>
   );

@@ -2,18 +2,10 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, NonNegativeInt, PositiveInt
+from forma.domains.furniture.schemas import WardrobeConfiguration
 
 
-class MockSketchInterpretation(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-    width_mm: PositiveInt
-    height_mm: PositiveInt
-    depth_mm: PositiveInt
-    doors_count: PositiveInt
-    shelves_count: NonNegativeInt
-    furniture_type: Literal["wardrobe"] = "wardrobe"
+class MockSketchInterpretation(WardrobeConfiguration):
     is_mock: Literal[True] = True
     requires_confirmation: Literal[True] = True
     notice: str = (

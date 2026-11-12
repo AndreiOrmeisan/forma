@@ -1,0 +1,114 @@
+{
+  "construction_profile": {
+    "id": "forma-wardrobe-poc-v1",
+    "name": "FORMA POC v1",
+    "pal_thickness_mm": "18",
+    "hdf_thickness_mm": "3",
+    "shelf_setback_mm": "50",
+    "door_outer_gap_mm": "2",
+    "door_middle_gap_mm": "2",
+    "door_top_gap_mm": "2",
+    "door_bottom_gap_mm": "2",
+    "interior_bays_count": 1,
+    "assumptions": [
+      "Dulap dreptunghiular, de sine stătător, cu laterale pe toată înălțimea.",
+      "PAL de 18 mm. Capacul și baza sunt montate între laterale.",
+      "Un singur compartiment interior continuu, inclusiv pentru două uși.",
+      "Polițe între laterale, cu adâncimea redusă cu 50 mm.",
+      "Una sau două uși batante aplicate, cu joc exterior de 2 mm pe fiecare laterală.",
+      "Joc de 2 mm între două uși și de 2 mm sus și jos.",
+      "Spate HDF de 3 mm, aplicat pe partea din spate a corpului.",
+      "Orientarea fibrei sau a decorului este nespecificată."
+    ]
+  },
+  "input_configuration": {
+    "width_mm": 800,
+    "height_mm": 2000,
+    "depth_mm": 600,
+    "doors_count": 2,
+    "shelves_count": 3,
+    "furniture_type": "wardrobe"
+  },
+  "panels": [
+    {
+      "id": "sides",
+      "name": "Laterale",
+      "material": "PAL",
+      "thickness_mm": "18",
+      "length_mm": "2000",
+      "width_mm": "600",
+      "quantity": 2,
+      "orientation": "unspecified",
+      "unit_area_m2": "1.2",
+      "area_m2": "2.4"
+    },
+    {
+      "id": "top",
+      "name": "Capac",
+      "material": "PAL",
+      "thickness_mm": "18",
+      "length_mm": "764",
+      "width_mm": "600",
+      "quantity": 1,
+      "orientation": "unspecified",
+      "unit_area_m2": "0.4584",
+      "area_m2": "0.4584"
+    },
+    {
+      "id": "bottom",
+      "name": "Bază",
+      "material": "PAL",
+      "thickness_mm": "18",
+      "length_mm": "764",
+      "width_mm": "600",
+      "quantity": 1,
+      "orientation": "unspecified",
+      "unit_area_m2": "0.4584",
+      "area_m2": "0.4584"
+    },
+    {
+      "id": "shelves",
+      "name": "Polițe",
+      "material": "PAL",
+      "thickness_mm": "18",
+      "length_mm": "764",
+      "width_mm": "550",
+      "quantity": 3,
+      "orientation": "unspecified",
+      "unit_area_m2": "0.4202",
+      "area_m2": "1.2606"
+    },
+    {
+      "id": "doors",
+      "name": "Uși",
+      "material": "PAL",
+      "thickness_mm": "18",
+      "length_mm": "1996",
+      "width_mm": "397",
+      "quantity": 2,
+      "orientation": "unspecified",
+      "unit_area_m2": "0.792412",
+      "area_m2": "1.584824"
+    },
+    {
+      "id": "back",
+      "name": "Spate",
+      "material": "HDF",
+      "thickness_mm": "3",
+      "length_mm": "800",
+      "width_mm": "2000",
+      "quantity": 1,
+      "orientation": "unspecified",
+      "unit_area_m2": "1.6",
+      "area_m2": "1.6"
+    }
+  ],
+  "totals": {
+    "total_pal_area_m2": "6.162224",
+    "total_hdf_area_m2": "1.6",
+    "total_panel_count": 10
+  },
+  "warnings": [
+    "Suprafețele sunt nete și se referă la piesele din listă, înainte de optimizarea pe foi."
+  ]
+}
