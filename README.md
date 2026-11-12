@@ -1,5 +1,7 @@
 # FORMA
 
+Local project saving, history and editing use SQLite (Python standard library). CRUD is disabled by default and never enabled on Render. For the local-only setup, endpoints, backups and production security boundary, see [project persistence](docs/project-persistence.md). Saved projects preserve configuration and pricing inputs; photographed sketches remain temporary. The public deployment continues to support anonymous calculations without exposing a shared project database.
+
 Manual wardrobe pricing is available on the result screen. Enter material/hardware unit prices, optional cost-only waste allowances, fixed labor and commercial markup, then explicitly apply them. Prices start empty; missing required prices produce an incomplete estimate. `POST /api/v1/furniture/estimate` recalculates quantities from confirmed configuration and returns Decimal monetary strings, rounded HALF_UP to cents, excluding VAT. See [pricing architecture](docs/future-supplier-pricing.md).
 
 FORMA is a multi-domain estimation platform. Furniture is the first implemented domain. Shared platform functionality must remain domain-agnostic, while calculation rules and domain-specific validation must remain isolated.

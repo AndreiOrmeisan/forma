@@ -7,7 +7,7 @@ import { useWardrobeProject } from "./wardrobe-project-context";
 import { validateWardrobeDraft, wardrobeFields, wardrobeRules } from "./wardrobe-configuration";
 import styles from "./review.module.css";
 
-export function WardrobeForm() {
+export function WardrobeForm({ onConfirmed }: { onConfirmed?: () => void } = {}) {
   const { draft, updateField, confirm } = useWardrobeProject();
   const router = useRouter();
   if (!draft) return null;
@@ -16,7 +16,10 @@ export function WardrobeForm() {
   return (
     <form className={styles.formCard} noValidate onSubmit={event => {
       event.preventDefault();
-      if (confirm()) router.push(furnitureRoutes.resultProject);
+      if (confirm()) {
+        if (onConfirmed) onConfirmed();
+        else router.push(furnitureRoutes.resultProject);
+      }
     }}>
       <h2>Configurația dulapului</h2>
       <p className={styles.formDescription}>Verifică fiecare valoare și ajusteaz-o după schița ta.</p>

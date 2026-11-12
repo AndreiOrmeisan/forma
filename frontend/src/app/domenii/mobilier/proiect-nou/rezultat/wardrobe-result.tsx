@@ -11,6 +11,7 @@ import styles from "@/features/furniture/review.module.css";
 import resultStyles from "@/features/furniture/wardrobe-result.module.css";
 import { WardrobeCalculation } from "@/features/furniture/wardrobe-calculation";
 import { WardrobePricingForm } from "@/features/furniture/wardrobe-pricing-form";
+import { ProjectSaveForm } from "@/features/furniture/project-save-form";
 
 export function WardrobeResult() {
   const { image } = useImageDraft();
@@ -45,6 +46,7 @@ export function WardrobeResult() {
       </div>
       <WardrobeCalculation key={JSON.stringify(confirmed)} configuration={confirmed} />
       <WardrobePricingForm key={`pricing-${JSON.stringify(confirmed)}`} configuration={confirmed} />
+      <ProjectSaveForm />
       <Link href={furnitureRoutes.reviewProject} className={styles.backLink}>Modifică configurația</Link>
     </section>
   );

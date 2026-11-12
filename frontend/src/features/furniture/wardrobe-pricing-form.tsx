@@ -6,20 +6,18 @@ import { useWardrobeProject } from "./wardrobe-project-context";
 import { formatMoney, isEstimate, priceItems, pricingError, pricingPayload, type Estimate } from "./wardrobe-pricing";
 import { formatExactDecimal } from "./calculate-wardrobe";
 import styles from "./wardrobe-pricing.module.css";
+import { invalidPricing } from "./project-api";
 
-export function WardrobePricingForm({ configuration }: { configuration: WardrobeConfiguration }) {
+export function WardrobePricingForm({ configuration, initialEstimate }: { configuration: WardrobeConfiguration; initialEstimate?: Estimate }) {
   const { pricing, updatePricing } = useWardrobeProject();
-  const [result, setResult] = useState<{ signature: string; estimate: Estimate } | null>(null);
+  const signature = JSON.stringify({ configuration, pricing });
+  const [result, setResult] = useState<{ signature: string; estimate: Estimate } | null>(() => initialEstimate ? {signature, estimate: initialEstimate} : null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const request = useRef<AbortController | null>(null);
   useEffect(() => () => request.current?.abort(), []);
-  const signature = JSON.stringify({ configuration, pricing });
   const stale = result !== null && result.signature !== signature;
-  const invalid = Object.entries(pricing).some(([key, value]) => {
-    const price = priceItems.some(([code]) => code === key);
-    return (price && !value.trim()) ? false : !!pricingError(value, ["pal", "hdf", "abs", "markup"].includes(key));
-  });
+  const invalid = invalidPricing(pricing);
 
   async function generate() {
     const controller = new AbortController();

@@ -25,6 +25,9 @@ The current POC is exclusively focused on furniture and particleboard (PAL) ward
 
 ## Conventions
 
+- Project persistence is local-only: mount CRUD only with explicit `FORMA_ENV=local` and `ENABLE_LOCAL_PROJECTS=true`, and never on Render. Keep default/production routes absent; do not treat CORS or request headers as authentication. Bind local servers to loopback. See `docs/project-persistence.md`.
+- `domains/furniture/projects.py` reuses current input validators; `project_store.py` uses stdlib SQLite, explicit transactions and numbered schema initialization. Save inputs, never image blobs or authoritative derived totals. Preserve UUIDs on edit, require revision checks, and block incompatible historical profiles/calculation versions instead of silently migrating them.
+
 - Furniture pricing lives in `domains/furniture/pricing.py`: reuse quantity calculation, match stable item codes, and obtain prices via the small PriceProvider boundary. Manual RON input is the only current source. Missing positive-quantity prices make final totals null; explicit zero is valid. See `docs/future-supplier-pricing.md` for rounding, allowances and future adapters.
 
 - Write code, identifiers, filenames, and technical documentation in English. User-facing UI copy is Romanian.

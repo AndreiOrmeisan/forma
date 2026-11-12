@@ -1,0 +1,32 @@
+{
+  "id": "0b812e53-cfcc-42bc-bfdd-168db0bfb9e3",
+  "domain": "furniture",
+  "name": "Dulap test",
+  "description": null,
+  "status": "draft",
+  "confirmed_configuration": {
+    "width_mm": 800,
+    "height_mm": 2000,
+    "depth_mm": 600,
+    "doors_count": 2,
+    "shelves_count": 3,
+    "furniture_type": "wardrobe"
+  },
+  "manual_price_catalog": [],
+  "waste_allowances": {
+    "pal": "0",
+    "hdf": "0",
+    "abs": "0"
+  },
+  "labor_cost": "0",
+  "markup_percentage": "0",
+  "created_at": "2026-11-12T15:35:30.367783Z",
+  "updated_at": "2026-11-12T15:35:30.367783Z",
+  "schema_version": 1,
+  "construction_profile_id": "forma-wardrobe-poc-v1",
+  "calculation_version": "wardrobe-v1",
+  "revision": 1,
+  "compatible": true,
+  "deviz_complete": false,
+  "warnings": []
+}

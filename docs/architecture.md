@@ -1,5 +1,9 @@
 # FORMA architecture
 
+## Local project persistence
+
+Furniture projects persist validated configuration/pricing inputs with UUID, UTC timestamps, schema/profile/calculation versions and optimistic revisions. Domain-local `project_store.py` provides transactional stdlib SQLite storage and numbered schema initialization. Derived quantities and estimates are recalculated after compatibility checks; images remain temporary. The frontend restores the existing project context in a static-export-compatible saved editor, not a separate calculator. Project CRUD is absent in default/production deployments and on Render, enabled only explicitly for loopback local development. No authentication or production shared database is introduced. See [project persistence](project-persistence.md) for setup, lifecycle, backups, migrations and future ownership/PostgreSQL requirements.
+
 ## Manual pricing
 
 The furniture estimate endpoint separates existing quantity engines, manual price sourcing and Decimal cost estimation. It accepts confirmed configuration and a typed manual catalog, never authoritative client quantities. Temporary frontend project context preserves pricing inputs across navigation. The backend owns totals; missing required prices suppress the final selling price. Stable item codes and a minimal PriceProvider protocol allow future authorized supplier adapters without changing geometry or cost formulas. See [future supplier pricing](future-supplier-pricing.md).
