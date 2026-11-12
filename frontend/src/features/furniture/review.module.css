@@ -55,11 +55,14 @@
   gap: 22px;
 }
 
+.visualColumn {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
 .sketchPanel {
   --image-preview-ratio: 16 / 7;
-  position: sticky;
-  top: 8px;
-  z-index: 1;
   min-width: 0;
   padding: 12px 12px 0;
   background: var(--color-surface);
@@ -211,13 +214,14 @@
     gap: 36px;
   }
   .sketchPanel {
-    --image-preview-ratio: 4 / 3;
     padding: 20px 20px 4px;
-    top: 24px;
   }
   .formCard { padding: 28px; }
 }
 
-@media (max-height: 600px) {
-  .sketchPanel { position: static; }
+@media (min-width: 800px) and (min-height: 850px) {
+  .visualColumn {
+    position: sticky;
+    top: 24px;
+  }
 }

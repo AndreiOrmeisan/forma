@@ -1,0 +1,174 @@
+.previewCard {
+  min-width: 0;
+  overflow: hidden;
+  padding: 20px 16px 16px;
+  border: 1px solid #e9e5df;
+  border-radius: 20px;
+  background: var(--color-surface);
+}
+
+.previewHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.previewHeader h2 {
+  font-size: 14px;
+}
+
+.switcher {
+  display: flex;
+  gap: 3px;
+  padding: 4px;
+  margin: 0;
+  border: 1px solid #e8e4de;
+  border-radius: 11px;
+  background: #eeece7;
+}
+
+.viewOption {
+  position: relative;
+  cursor: pointer;
+}
+
+.viewOption input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.viewOption span {
+  display: grid;
+  place-items: center;
+  min-width: 66px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  color: #706a62;
+  font-size: 12px;
+  transition: background 160ms, color 160ms;
+}
+
+.viewOption input:checked + span {
+  color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+.viewOption input:focus-visible + span {
+  outline: 2px solid #71533b;
+  outline-offset: 2px;
+}
+
+.figure {
+  margin: 0;
+  min-height: 360px;
+}
+
+.drawing, .invalidDrawing {
+  display: block;
+  width: 100%;
+  height: 320px;
+  border-radius: 12px;
+  background: #f8f7f4;
+}
+
+.cabinet rect, .cabinet line, .dimensions path {
+  vector-effect: non-scaling-stroke;
+}
+
+.backPanel {
+  fill: #fff;
+}
+
+.panel {
+  fill: var(--color-accent);
+  stroke: #b9ab9b;
+  stroke-width: 0.6;
+}
+
+.shelf {
+  fill: #ded1c1;
+  stroke: #a79783;
+  stroke-width: 0.6;
+}
+
+.door {
+  fill: #f1e9df;
+  stroke: #a79783;
+  stroke-width: 0.8;
+}
+
+.outline {
+  stroke: #4e473f;
+  stroke-width: 1.2;
+}
+
+.handle {
+  stroke: #51483e;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.dimensions path {
+  fill: none;
+  stroke: #8a8074;
+  stroke-width: 0.7;
+}
+
+.dimensions text {
+  fill: #62584c;
+  stroke: none;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 16px 2px 0;
+  color: #706a62;
+  font-size: 11px;
+}
+
+.caption strong {
+  margin-left: 5px;
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.invalidDrawing {
+  height: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+  color: #706a62;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.invalidDrawing span {
+  font-size: 12px;
+}
+
+@media (min-width: 800px) {
+  .previewCard { padding: 22px; }
+  .drawing { height: 340px; }
+  .figure { min-height: 380px; }
+  .invalidDrawing { height: 380px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewOption span { transition: none; }
+}

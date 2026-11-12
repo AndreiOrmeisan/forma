@@ -70,6 +70,8 @@ Upload a sketch, then review and edit the demonstration configuration under `/do
 
 Editable POC ranges are centralized in `frontend/src/features/furniture/wardrobe-configuration.ts`. The original response, editable draft, and confirmed configuration are separate. Confirmation opens `/domenii/mobilier/proiect-nou/rezultat`, which displays the configuration and a material-estimation placeholder. State stays in memory and resets when the image changes or the page reloads. The upload and review screens provide recovery links when that state is missing.
 
+The review screen includes a live SVG front elevation driven by the editable draft. Switch between interior and door views independently of the form. Width and height remain proportional, depth is labeled separately, and panel thickness is schematic. Temporarily invalid input displays a validation state until the existing POC rules are satisfied.
+
 ## Environment configuration
 
 Local defaults work without environment files. `.env.example` documents configuration and an unused placeholder for future AI credentials. Copy the frontend variable to `frontend/.env.local` if needed. Set `CORS_ORIGINS` in the backend process environment, or place it in `backend/.env` and start Uvicorn with `--env-file .env`. Root `.env` files are not loaded automatically. Never put private credentials in `NEXT_PUBLIC_*` variables.

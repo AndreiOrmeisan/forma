@@ -9,6 +9,7 @@ import { furnitureRoutes } from "@/config/domains";
 import { analyzeSketch } from "@/features/furniture/analyze-sketch";
 import { useWardrobeProject } from "@/features/furniture/wardrobe-project-context";
 import { WardrobeForm } from "@/features/furniture/wardrobe-form";
+import { WardrobeConfiguratorPreview } from "@/features/furniture/wardrobe-configurator-preview";
 import { ProjectRecovery } from "../project-recovery";
 import styles from "@/features/furniture/review.module.css";
 
@@ -51,11 +52,14 @@ export function SketchReview() {
         <p>Valorile inițiale sunt un exemplu fix, independent de conținutul fotografiei. Ajustează-le pentru dulapul tău.</p>
       </aside>
       <div className={styles.reviewGrid}>
-        <div className={styles.sketchPanel}>
-          <ImagePreview image={image} />
-          <Link href={furnitureRoutes.newProject} className={styles.backLink}>
-            <ArrowLeft size={16} aria-hidden="true" /> Înapoi la fotografie
-          </Link>
+        <div className={styles.visualColumn}>
+          <div className={styles.sketchPanel}>
+            <ImagePreview image={image} />
+            <Link href={furnitureRoutes.newProject} className={styles.backLink}>
+              <ArrowLeft size={16} aria-hidden="true" /> Înapoi la fotografie
+            </Link>
+          </div>
+          {interpretation && <WardrobeConfiguratorPreview />}
         </div>
         {interpretation ? <WardrobeForm /> : (
           <div className={styles.requestState}>
