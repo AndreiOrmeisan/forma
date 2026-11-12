@@ -1,5 +1,7 @@
 # FORMA
 
+Manual wardrobe pricing is available on the result screen. Enter material/hardware unit prices, optional cost-only waste allowances, fixed labor and commercial markup, then explicitly apply them. Prices start empty; missing required prices produce an incomplete estimate. `POST /api/v1/furniture/estimate` recalculates quantities from confirmed configuration and returns Decimal monetary strings, rounded HALF_UP to cents, excluding VAT. See [pricing architecture](docs/future-supplier-pricing.md).
+
 FORMA is a multi-domain estimation platform. Furniture is the first implemented domain. Shared platform functionality must remain domain-agnostic, while calculation rules and domain-specific validation must remain isolated.
 
 The current POC focuses on particleboard (PAL) wardrobes from photographs of hand-drawn sketches. The frontend provides domain selection, sketch upload, mock review and editing, SVG preview, cutting lists, edge banding, preliminary hardware estimates, and an empty projects page. The backend owns all deterministic material and hardware calculations.

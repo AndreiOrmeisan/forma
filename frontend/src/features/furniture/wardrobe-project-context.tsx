@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 import { useImageDraft } from "@/components/image-upload/image-draft-context";
+import { initialPricing, type PricingDraft } from "./wardrobe-pricing";
 import {
   configurationToDraft,
   validateWardrobeDraft,
@@ -12,6 +13,8 @@ import {
 } from "./wardrobe-configuration";
 
 type WardrobeProject = {
+  pricing: PricingDraft;
+  updatePricing: (key: string, value: string) => void;
   interpretation: MockInterpretation | null;
   draft: WardrobeDraft | null;
   confirmed: WardrobeConfiguration | null;
@@ -22,13 +25,14 @@ type WardrobeProject = {
 
 const WardrobeProjectContext = createContext<WardrobeProject | null>(null);
 
-type ProjectState = Pick<WardrobeProject, "interpretation" | "draft" | "confirmed"> & { imageUrl: string | null };
+type ProjectState = Pick<WardrobeProject, "interpretation" | "draft" | "confirmed" | "pricing"> & { imageUrl: string | null };
 
 export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
   const { image } = useImageDraft();
   const imageUrl = image?.url ?? null;
   const [project, setProject] = useState<ProjectState>({
     imageUrl,
+    pricing: initialPricing(),
     interpretation: null,
     draft: null,
     confirmed: null,
@@ -36,7 +40,7 @@ export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
 
   // Reset image-dependent data without remounting the active upload component.
   if (project.imageUrl !== imageUrl) {
-    setProject({ imageUrl, interpretation: null, draft: null, confirmed: null });
+    setProject({ imageUrl, interpretation: null, draft: null, confirmed: null, pricing: initialPricing() });
   }
 
   const acceptInterpretation = useCallback((data: MockInterpretation) => {
@@ -65,7 +69,7 @@ export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <WardrobeProjectContext.Provider value={{ ...project, acceptInterpretation, updateField, confirm }}>
+    <WardrobeProjectContext.Provider value={{ ...project, acceptInterpretation, updateField, confirm, updatePricing: (key, value) => setProject(previous => ({ ...previous, pricing: { ...previous.pricing, [key]: value } })) }}>
       {children}
     </WardrobeProjectContext.Provider>
   );

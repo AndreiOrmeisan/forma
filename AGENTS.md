@@ -25,6 +25,8 @@ The current POC is exclusively focused on furniture and particleboard (PAL) ward
 
 ## Conventions
 
+- Furniture pricing lives in `domains/furniture/pricing.py`: reuse quantity calculation, match stable item codes, and obtain prices via the small PriceProvider boundary. Manual RON input is the only current source. Missing positive-quantity prices make final totals null; explicit zero is valid. See `docs/future-supplier-pricing.md` for rounding, allowances and future adapters.
+
 - Write code, identifiers, filenames, and technical documentation in English. User-facing UI copy is Romanian.
 - Keep frontend presentation and backend calculations separate.
 - Prefer simple functions, explicit types, Pydantic boundary validation, and minimal dependencies.

@@ -1,5 +1,9 @@
 # FORMA architecture
 
+## Manual pricing
+
+The furniture estimate endpoint separates existing quantity engines, manual price sourcing and Decimal cost estimation. It accepts confirmed configuration and a typed manual catalog, never authoritative client quantities. Temporary frontend project context preserves pricing inputs across navigation. The backend owns totals; missing required prices suppress the final selling price. Stable item codes and a minimal PriceProvider protocol allow future authorized supplier adapters without changing geometry or cost formulas. See [future supplier pricing](future-supplier-pricing.md).
+
 ## Architectural principle
 
 FORMA is a multi-domain estimation platform. Furniture is the first implemented domain. Shared platform functionality must remain domain-agnostic, while calculation rules and domain-specific validation must remain isolated.

@@ -1,0 +1,209 @@
+{
+  "configuration": {
+    "width_mm": 800,
+    "height_mm": 2000,
+    "depth_mm": 600,
+    "doors_count": 2,
+    "shelves_count": 3,
+    "furniture_type": "wardrobe"
+  },
+  "price_sources": [
+    {
+      "item_code": "pal_18",
+      "item_name": "PAL 18 mm",
+      "unit": "m²",
+      "unit_price_ron": "10",
+      "currency": "RON",
+      "source_type": "manual",
+      "source_name": "Introducere manuală",
+      "updated_at": "2026-11-12T10:00:00Z"
+    },
+    {
+      "item_code": "hdf_3",
+      "item_name": "HDF 3 mm",
+      "unit": "m²",
+      "unit_price_ron": "10",
+      "currency": "RON",
+      "source_type": "manual",
+      "source_name": "Introducere manuală",
+      "updated_at": "2026-11-12T10:00:00Z"
+    },
+    {
+      "item_code": "abs_2",
+      "item_name": "ABS 2 mm",
+      "unit": "m",
+      "unit_price_ron": "10",
+      "currency": "RON",
+      "source_type": "manual",
+      "source_name": "Introducere manuală",
+      "updated_at": "2026-11-12T10:00:00Z"
+    },
+    {
+      "item_code": "abs_0_4",
+      "item_name": "ABS 0,4 mm",
+      "unit": "m",
+      "unit_price_ron": "10",
+      "currency": "RON",
+      "source_type": "manual",
+      "source_name": "Introducere manuală",
+      "updated_at": "2026-11-12T10:00:00Z"
+    },
+    {
+      "item_code": "hinges",
+      "item_name": "Balamale",
+      "unit": "buc.",
+      "unit_price_ron": "10",
+      "currency": "RON",
+      "source_type": "manual",
+      "source_name": "Introducere manuală",
+      "updated_at": "2026-11-12T10:00:00Z"
+    },
+    {
+      "item_code": "shelf_supports",
+      "item_name": "Suporți polițe",
+      "unit": "buc.",
+      "unit_price_ron": "10",
+      "currency": "RON",
+      "source_type": "manual",
+      "source_name": "Introducere manuală",
+      "updated_at": "2026-11-12T10:00:00Z"
+    },
+    {
+      "item_code": "handles",
+      "item_name": "Mânere",
+      "unit": "buc.",
+      "unit_price_ron": "10",
+      "currency": "RON",
+      "source_type": "manual",
+      "source_name": "Introducere manuală",
+      "updated_at": "2026-11-12T10:00:00Z"
+    },
+    {
+      "item_code": "cabinet_connectors",
+      "item_name": "Conectori carcasă",
+      "unit": "buc.",
+      "unit_price_ron": "10",
+      "currency": "RON",
+      "source_type": "manual",
+      "source_name": "Introducere manuală",
+      "updated_at": "2026-11-12T10:00:00Z"
+    },
+    {
+      "item_code": "hdf_fasteners",
+      "item_name": "Elemente fixare HDF",
+      "unit": "buc.",
+      "unit_price_ron": "10",
+      "currency": "RON",
+      "source_type": "manual",
+      "source_name": "Introducere manuală",
+      "updated_at": "2026-11-12T10:00:00Z"
+    }
+  ],
+  "material_lines": [
+    {
+      "item_code": "pal_18",
+      "name": "PAL 18 mm",
+      "base_quantity": "6.162224",
+      "billable_quantity": "6.162224",
+      "unit": "m²",
+      "unit_price_ron": "10",
+      "line_total_ron": "61.62",
+      "source_type": "manual"
+    },
+    {
+      "item_code": "hdf_3",
+      "name": "HDF 3 mm",
+      "base_quantity": "1.6",
+      "billable_quantity": "1.6",
+      "unit": "m²",
+      "unit_price_ron": "10",
+      "line_total_ron": "16.00",
+      "source_type": "manual"
+    },
+    {
+      "item_code": "abs_2",
+      "name": "ABS 2 mm",
+      "base_quantity": "17.392",
+      "billable_quantity": "17.392",
+      "unit": "m",
+      "unit_price_ron": "10",
+      "line_total_ron": "173.92",
+      "source_type": "manual"
+    },
+    {
+      "item_code": "abs_0_4",
+      "name": "ABS 0,4 mm",
+      "base_quantity": "0",
+      "billable_quantity": "0",
+      "unit": "m",
+      "unit_price_ron": "10",
+      "line_total_ron": "0.00",
+      "source_type": "manual"
+    }
+  ],
+  "hardware_lines": [
+    {
+      "item_code": "hinges",
+      "name": "Balamale",
+      "base_quantity": "8",
+      "billable_quantity": "8",
+      "unit": "buc.",
+      "unit_price_ron": "10",
+      "line_total_ron": "80.00",
+      "source_type": "manual"
+    },
+    {
+      "item_code": "shelf_supports",
+      "name": "Suporți polițe",
+      "base_quantity": "12",
+      "billable_quantity": "12",
+      "unit": "buc.",
+      "unit_price_ron": "10",
+      "line_total_ron": "120.00",
+      "source_type": "manual"
+    },
+    {
+      "item_code": "handles",
+      "name": "Mânere",
+      "base_quantity": "2",
+      "billable_quantity": "2",
+      "unit": "buc.",
+      "unit_price_ron": "10",
+      "line_total_ron": "20.00",
+      "source_type": "manual"
+    },
+    {
+      "item_code": "cabinet_connectors",
+      "name": "Conectori carcasă",
+      "base_quantity": "8",
+      "billable_quantity": "8",
+      "unit": "buc.",
+      "unit_price_ron": "10",
+      "line_total_ron": "80.00",
+      "source_type": "manual"
+    },
+    {
+      "item_code": "hdf_fasteners",
+      "name": "Elemente fixare HDF",
+      "base_quantity": "40",
+      "billable_quantity": "40",
+      "unit": "buc.",
+      "unit_price_ron": "10",
+      "line_total_ron": "400.00",
+      "source_type": "manual"
+    }
+  ],
+  "labor_cost_ron": "0.00",
+  "material_subtotal_ron": "251.54",
+  "hardware_subtotal_ron": "700.00",
+  "production_cost_ron": "951.54",
+  "markup_percent": "0",
+  "markup_amount_ron": "0.00",
+  "selling_price_before_tax_ron": "951.54",
+  "is_complete": true,
+  "missing_item_codes": [],
+  "warnings": [
+    "Estimare fără TVA. Adaosul comercial nu reprezintă marja de profit.",
+    "Pierderile sunt adaosuri pentru cost, nu optimizare de debitare. Feroneria rămâne estimativă."
+  ]
+}

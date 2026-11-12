@@ -9,6 +9,7 @@ let confirmed = null;
 const { WardrobeResult } = loadTypeScriptModule("src/app/domenii/mobilier/proiect-nou/rezultat/wardrobe-result.tsx", {
   "@/components/image-upload/image-draft-context": { useImageDraft: () => ({ image }) },
   "@/features/furniture/wardrobe-project-context": { useWardrobeProject: () => ({ confirmed }) },
+  "@/features/furniture/wardrobe-pricing-form": { WardrobePricingForm: () => React.createElement("p", null, "Manual pricing") },
   "@/features/furniture/wardrobe-configuration": loadTypeScriptModule("src/features/furniture/wardrobe-configuration.ts"),
   "@/features/furniture/wardrobe-calculation": { WardrobeCalculation: function Calculation(props) {
     return React.createElement("p", null, `Configuration received: ${props.configuration.width_mm}`);
