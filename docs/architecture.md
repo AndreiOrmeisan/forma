@@ -1,25 +1,58 @@
 # FORMA architecture
 
-## Product scope
+## Architectural principle
 
-The initial MVP targets wardrobes made from particleboard (PAL). The future workflow starts with a photograph of a hand-drawn sketch and produces material estimates, cutting lists, hardware requirements, and production costs.
+FORMA is a multi-domain estimation platform. Furniture is the first implemented domain. Shared platform functionality must remain domain-agnostic, while calculation rules and domain-specific validation must remain isolated.
+
+The current POC exclusively targets furniture and particleboard (PAL) wardrobes. Electrical installations, plumbing, construction, interiors, and HVAC are future domains displayed as unavailable in the catalog.
 
 ## Current implementation
 
-The monorepo contains two independently installed applications. The frontend uses Next.js App Router, React, TypeScript, Tailwind CSS, and ESLint. Its root page is an empty initialization shell with Romanian document language. The backend uses FastAPI, Pydantic, and Uvicorn. It exposes `GET /api/health`, returning `{"status":"ok"}`.
+The monorepo contains independently installed Next.js and FastAPI applications. The frontend uses App Router, React, TypeScript, Tailwind CSS, Geist, and Lucide. Existing Minimal Premium design tokens remain in `src/app/globals.css`.
 
-The Python package uses a `src` layout. `main.py` creates the application and registers middleware and routes. `config.py` reads environment configuration. `api/health.py` defines the health route and response schema. Tests exercise the HTTP boundary through FastAPI TestClient.
+| Frontend route | Responsibility |
+| --- | --- |
+| `/` | Platform domain selection |
+| `/domenii/mobilier` | Existing furniture homepage |
+| `/domenii/mobilier/proiect-nou` | New furniture project placeholder |
+| `/domenii/mobilier/proiecte` | Furniture projects empty state |
+| `/proiect-nou` | Permanent redirect preserving earlier links |
 
-## Responsibility boundaries
+`src/config/domains.ts` owns typed domain metadata and furniture route constants. Available entries require a route. Upcoming entries require a null route and render without interactive elements. Explicit App Router files determine which domains are reachable. A shared furniture layout provides navigation and a visible return link to the platform dashboard. The existing mode selector retains its `forma-mode` localStorage key and values across route changes and reloads.
 
-The frontend will handle mobile-first interaction, image selection, review of interpreted data, and display of results in Romanian. The backend will validate inputs and own all calculation rules.
+Furniture components remain reusable at their existing paths. Domain boundaries are currently established through routing and configuration. Moving presentation components into domain directories can follow when another implemented domain gives that separation a concrete use.
 
-Future image interpretation will convert image evidence into structured furniture inputs. Deterministic backend code will calculate furniture geometry, material quantities, cutting lists, hardware, and pricing. Interpretation results will require validation before calculations. Detailed schemas and calculation rules will be defined when those capabilities are implemented.
+The Python package uses a `src/forma` layout. `main.py` creates the application and registers middleware and routes. `config.py` reads CORS configuration. `api/health.py` owns `GET /api/health`, returning `{"status":"ok"}`. Existing tests cover health and local frontend CORS. These modules already provide a small domain-agnostic foundation, so this sprint requires documentation of backend boundaries without additional Python modules.
 
-Future modules may cover uploads, interpretation, geometry, materials, hardware, and quotations. Create each module when its implementation is needed.
+## Future backend boundaries
+
+Introduce the following concrete packages as their first functionality is implemented.
+
+| Proposed package | Responsibility |
+| --- | --- |
+| `forma/shared/` | Domain-agnostic file handling, shared units, and infrastructure helpers with actual reuse |
+| `forma/domains/furniture/` | Furniture schemas, validation, geometry, materials, hardware, and cost rules |
+| `forma/interpretation/` | Image interpretation orchestration and future AI provider integration |
+| `forma/projects/` | Common project identity, domain selection, lifecycle, and project metadata |
+| `forma/exports/` | Shared document/file delivery and export orchestration |
+| `forma/api/` | Thin HTTP adapters calling concrete capabilities |
+
+Domain packages own their calculation inputs, validation, results, and domain-specific export data. Shared services must accept explicit inputs without importing domain calculation rules. Projects will carry an explicit domain identifier, with domain-specific payloads validated by that domain. Export orchestration will receive validated results, while domain-specific output formatting remains with its domain when needed.
+
+Image interpretation will convert evidence into structured candidate inputs. Domain-specific schemas and interpretation instructions belong with their domain. Interpretation adapters validate those candidates before deterministic calculation. Python domain code owns quantities and totals. Exact schemas, persistence choices, API paths, and provider contracts will be defined with the implementing task.
+
+Use direct calls and explicit router composition as domains arrive. Introduce common abstractions only when implemented domains demonstrate a shared requirement.
+
+## Extension workflow
+
+1. Define the next domain's supported workflow, inputs, validation, and deterministic calculation rules.
+2. Implement its concrete backend modules and HTTP adapters with relevant tests.
+3. Add its frontend routes under `/domenii/<slug>` and reuse the platform design system.
+4. Add shared services justified by real cross-domain use, keeping domain rules isolated.
+5. Verify the supported workflow and then enable its catalog route and availability.
+
+The frontend catalog controls discoverability. Future backend APIs must independently validate domain identifiers and supported operations.
 
 ## Local runtime
 
 The frontend runs on port 3000 and the backend on port 8000. Backend CORS defaults permit `http://localhost:3000` and `http://127.0.0.1:3000`. `CORS_ORIGINS` accepts a comma-separated override. Uvicorn can load an optional `backend/.env` via `--env-file .env`. The frontend reads optional public settings from `frontend/.env.local`.
-
-This initialization includes no persistence, authentication, external integrations, or business calculations.

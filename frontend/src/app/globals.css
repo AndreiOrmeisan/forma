@@ -317,7 +317,7 @@ h2 {
   transform: rotate(6deg);
 }
 
-.empty-projects h3 {
+.empty-projects-title {
   font-size: 15px;
   font-weight: 500;
   letter-spacing: -0.2px;
@@ -386,6 +386,132 @@ h2 {
 .placeholder-page p {
   color: #706a62;
   line-height: 1.7;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.domain-back-link, .projects-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 12px;
+  color: #706a62;
+}
+
+.domain-back-link:hover, .projects-link:hover {
+  color: var(--color-primary);
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-heading .projects-link {
+  min-height: 24px;
+}
+
+.domain-content {
+  padding: 48px 0 calc(48px + env(safe-area-inset-bottom));
+}
+
+.domain-content .hero {
+  display: block;
+}
+
+.domain-content .hero h1 {
+  font-size: clamp(42px, 6.5vw, 72px);
+}
+
+.domain-content .hero p {
+  margin-top: 20px;
+}
+
+.domain-grid {
+  display: grid;
+  gap: 16px;
+  list-style: none;
+}
+
+.domain-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 190px;
+  padding: 24px;
+  border: 1px solid #e9e5df;
+  border-radius: 20px;
+  background: var(--color-surface);
+}
+
+.domain-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.domain-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.domain-card p {
+  margin-top: 9px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #706a62;
+}
+
+.domain-card-available {
+  background: #eee3d7;
+  border-color: #e5d5c5;
+  transition: background 160ms, transform 160ms;
+}
+
+.domain-card-available:hover {
+  background: #e5d5c5;
+  transform: translateY(-2px);
+}
+
+.domain-card-upcoming {
+  background: transparent;
+  color: #706a62;
+}
+
+.projects-page {
+  padding-bottom: calc(130px + env(safe-area-inset-bottom));
+}
+
+.projects-page .recent-projects {
+  max-width: 640px;
+}
+
+@media (min-width: 600px) {
+  .domain-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1000px) {
+  .domain-content {
+    padding-top: 70px;
+  }
+
+  .domain-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
 }
 
 @media (min-width: 600px) {

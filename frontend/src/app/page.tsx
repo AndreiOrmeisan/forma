@@ -1,27 +1,17 @@
 import { AppHeader } from "@/components/app-header";
-import { BottomNavigation } from "@/components/bottom-navigation";
-import { FurnitureCategories } from "@/components/furniture-categories";
-import { HeroSection } from "@/components/hero-section";
-import { ModeSwitcher } from "@/components/mode-switcher";
-import { NewProjectCard } from "@/components/new-project-card";
-import { RecentProjects } from "@/components/recent-projects";
+import { DomainSelection } from "@/components/domain-selection";
 
-export default function Home() {
+export default function DomainDashboard() {
   return (
     <div className="app-shell">
       <AppHeader />
-      <main id="main-content" className="home-content">
-        <HeroSection />
-        <div className="workspace-grid">
-          <div className="creation-column">
-            <ModeSwitcher />
-            <NewProjectCard />
-            <FurnitureCategories />
-          </div>
-          <RecentProjects />
-        </div>
+      <main id="main-content" className="domain-content">
+        <section className="hero" aria-labelledby="domains-title">
+          <h1 id="domains-title">Alege domeniul<span>.</span></h1>
+          <p>Ce tip de proiect vrei să realizezi?</p>
+        </section>
+        <DomainSelection />
       </main>
-      <BottomNavigation />
     </div>
   );
 }

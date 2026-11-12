@@ -1,6 +1,8 @@
 # FORMA
 
-Mobile-first wardrobe estimation from photographs of hand-drawn sketches. The initial MVP scope is particleboard (PAL) wardrobes. This repository contains the development scaffold.
+FORMA is a multi-domain estimation platform. Furniture is the first implemented domain. Shared platform functionality must remain domain-agnostic, while calculation rules and domain-specific validation must remain isolated.
+
+The current POC focuses on particleboard (PAL) wardrobes from photographs of hand-drawn sketches. The frontend provides domain selection, the furniture homepage, an empty projects page, and a new-project placeholder. The backend currently exposes application health.
 
 ## Requirements
 
@@ -18,7 +20,17 @@ npm.cmd ci
 npm.cmd run dev
 ```
 
-Open http://localhost:3000. The initial page is intentionally empty.
+Open http://localhost:3000 to select a domain.
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Domain selection dashboard |
+| `/domenii/mobilier` | Furniture homepage and persisted mode selector |
+| `/domenii/mobilier/proiect-nou` | New furniture project placeholder |
+| `/domenii/mobilier/proiecte` | Furniture projects empty state |
+| `/proiect-nou` | Permanent redirect to the furniture new-project route |
+
+`frontend/src/config/domains.ts` defines the domain catalog, availability, and furniture routes. Upcoming domains have null routes and render as static cards. The shared furniture layout includes a visible return link to domain selection. The mode selector preserves the existing `forma-mode` localStorage key.
 
 ```powershell
 npm.cmd run lint
@@ -54,7 +66,10 @@ Local defaults work without environment files. `.env.example` documents configur
 ## Repository layout
 
 ```text
-frontend/             Next.js application
+frontend/
+  src/app/            Platform dashboard and domain-scoped routes
+  src/components/     Shared presentation and furniture components
+  src/config/         Typed domain catalog and routes
 backend/
   src/forma/          FastAPI application and HTTP routes
   tests/              Backend automated tests
@@ -77,3 +92,7 @@ gh repo create forma --private --source=. --remote=origin --push
 ```
 
 See `AGENTS.md` and `docs/architecture.md` for engineering conventions and future scope.
+
+## Domain extension strategy
+
+Add a domain's routes and deterministic backend implementation when its product scope is approved. Keep its schemas, validation, and calculation rules together. Reuse platform services for common project lifecycle, file handling, and exports as those capabilities are implemented. AI interpretation will produce inputs that each domain validates before deterministic calculation. Enable the catalog entry only when its destination is implemented and verified. See `docs/architecture.md` for the proposed backend boundaries.
