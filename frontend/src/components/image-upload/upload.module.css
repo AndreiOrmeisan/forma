@@ -1,0 +1,202 @@
+.uploader {
+  min-width: 0;
+}
+
+.preview {
+  margin: 0;
+  min-width: 0;
+}
+
+.uploadSurface {
+  padding: 18px;
+  background: var(--color-surface);
+  border: 1px solid #e9e5df;
+  border-radius: 24px;
+}
+
+.emptyPreview, .imageFrame {
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f3f1ec;
+}
+
+.emptyPreview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #e4ddd2;
+  text-align: center;
+}
+
+.uploadIcon {
+  display: grid;
+  place-items: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 10px;
+  border: 1px solid #ded5c7;
+  background: #faf8f3;
+  color: #786755;
+  transform: rotate(-5deg);
+}
+
+.emptyPreview p {
+  max-width: 230px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.imageFrame {
+  display: grid;
+  place-items: center;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+}
+
+.fileDetails {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  padding: 14px 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.fileName {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.fileSize {
+  flex-shrink: 0;
+  color: #706a62;
+}
+
+.actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.primaryButton, .secondaryButton, .continueButton, .deleteButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 160ms;
+}
+
+.primaryButton:focus-visible, .secondaryButton:focus-visible,
+.continueButton:focus-visible, .deleteButton:focus-visible {
+  outline: 2px solid #71533b;
+  outline-offset: 4px;
+}
+
+.primaryButton, .continueButton {
+  color: white;
+  background: var(--color-primary);
+}
+
+.primaryButton:hover:not(:disabled), .continueButton:hover:not(:disabled) {
+  background: #3c3731;
+}
+
+.secondaryButton {
+  color: var(--color-primary);
+  border: 1px solid #e1dbd2;
+  background: transparent;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background: var(--color-background);
+}
+
+.deleteButton {
+  min-height: 44px;
+  margin: 7px auto 0;
+  padding: 10px 14px;
+  color: #835244;
+}
+
+.deleteButton:hover {
+  background: #f8efea;
+}
+
+.primaryButton:disabled, .secondaryButton:disabled, .continueButton:disabled {
+  background: #e4e0d9;
+  color: #706a62;
+  cursor: default;
+}
+
+.cameraHint {
+  max-width: 340px;
+  margin: 9px auto 0;
+  text-align: center;
+  color: #706a62;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.formatHint {
+  margin: 18px 0 0;
+  text-align: center;
+  color: #706a62;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.feedback {
+  min-height: 44px;
+  padding: 10px 2px;
+  color: #706a62;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.feedback .error {
+  color: #963d2f;
+}
+
+.continueButton {
+  justify-content: space-between;
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 21px;
+}
+
+.spinner {
+  animation: spin 1.4s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (min-width: 600px) {
+  .uploadSurface { padding: 24px; }
+  .emptyPreview p { font-size: 13px; }
+  .uploadIcon { width: 116px; height: 112px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
+  .primaryButton, .secondaryButton, .continueButton { transition: none; }
+}

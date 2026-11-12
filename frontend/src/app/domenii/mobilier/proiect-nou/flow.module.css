@@ -1,0 +1,134 @@
+.flowPage {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 28px 0 calc(125px + env(safe-area-inset-bottom));
+}
+
+.stepHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 26px;
+  border-bottom: 1px solid #e9e5df;
+}
+
+.backButton {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #e3ddd4;
+  border-radius: 50%;
+}
+
+.backButton:hover {
+  background: #eeeae3;
+}
+
+.projectTitle {
+  flex: 1;
+  min-width: 0;
+}
+
+.projectTitle p {
+  font-size: 15px;
+  font-weight: 550;
+  letter-spacing: -0.3px;
+}
+
+.flowContent {
+  display: grid;
+  gap: 28px;
+  margin-top: 34px;
+}
+
+.introduction h1, .recovery h1 {
+  font-size: clamp(36px, 5vw, 48px);
+  line-height: 1.12;
+  letter-spacing: -1.8px;
+  font-weight: 500;
+}
+
+.introduction h1 span {
+  color: #a88d73;
+}
+
+.introduction p, .recovery p {
+  max-width: 430px;
+  margin-top: 18px;
+  font-size: 14px;
+  line-height: 1.85;
+  color: #706a62;
+}
+
+.introduction .domainLabel {
+  margin: 0 0 14px;
+  color: #706a62;
+  font-size: 10px;
+  font-weight: 550;
+  line-height: 1.5;
+  letter-spacing: 1.8px;
+}
+
+.reviewContent {
+  min-width: 0;
+}
+
+.reviewNote {
+  padding: 22px;
+  margin: 12px 0 20px;
+  border: 1px solid #e5d5c5;
+  border-radius: 16px;
+  background: #eee3d7;
+}
+
+.reviewNote h2 {
+  font-size: 15px;
+}
+
+.reviewNote p {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #62584c;
+}
+
+.returnLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 14px 20px;
+  border: 1px solid #d9d0c4;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.returnLink:hover {
+  background: #eeeae3;
+}
+
+.recovery {
+  max-width: 500px;
+  padding: 48px 0;
+}
+
+.recovery > svg {
+  color: #8d8173;
+  margin-bottom: 24px;
+}
+
+.recovery .returnLink {
+  margin-top: 26px;
+}
+
+@media (min-width: 800px) {
+  .flowPage { padding-top: 38px; }
+  .stepHeader { gap: 18px; }
+  .flowContent {
+    gap: 30px;
+    margin-top: 38px;
+  }
+}
