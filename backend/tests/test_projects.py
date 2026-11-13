@@ -37,6 +37,41 @@ def create(client, **changes):
     return response.json()
 
 
+def test_project_price_snapshots_remain_frozen_and_round_trip(local):
+    entry = dict(item_code="pal_18", item_name="PAL", unit="m²", unit_price_ron="50.000000",
+                 currency="RON", source_type="manual", source_name="Catalog personal", updated_at="2026-11-13T10:00:00Z")
+    snapshot = dict(item_code="pal_18", unit_price_ron="50", normalized_unit="m²", supplier_id=str(uuid4()),
+                    supplier_name="Supplier at application", catalog_item_id=str(uuid4()), applied_at="2026-11-13T10:00:00Z",
+                    source_type="manual_catalog", is_override=False)
+    saved = create(local, manual_price_catalog=[entry], price_snapshots=[snapshot])
+    assert saved["price_snapshots"][0]["supplier_name"] == snapshot["supplier_name"]
+    updated = local.patch(f"{BASE}/{saved['id']}", json={"expected_revision": 1, "name": "Renamed"}).json()
+    assert updated["price_snapshots"] == saved["price_snapshots"]
+    copied = local.post(f"{BASE}/{saved['id']}/duplicate").json()
+    assert copied["price_snapshots"] == saved["price_snapshots"]
+    bad = local.patch(f"{BASE}/{saved['id']}", json={"expected_revision": 2, "price_snapshots": [snapshot | {"unit_price_ron": "60"}]})
+    assert bad.status_code == 422
+    assert local.get(f"{BASE}/{saved['id']}").json() == updated
+    cleared = snapshot | {"unit_price_ron": None, "source_type": "manual", "is_override": True}
+    response = local.patch(f"{BASE}/{saved['id']}", json={"expected_revision": 2, "manual_price_catalog": [], "price_snapshots": [cleared]})
+    assert response.status_code == 200
+    assert response.json()["price_snapshots"][0]["unit_price_ron"] is None
+
+
+@pytest.mark.parametrize("changes", [
+    {"normalized_unit": "m"}, {"catalog_item_id": None}, {"is_override": True},
+    {"applied_at": "2026-11-13T10:00:00"}, {"item_code": "unknown"},
+    {"unit_price_ron": "-1"}, {"unit_price_ron": "Infinity"}, {"image": "blob:test"},
+])
+def test_invalid_snapshot_contract_is_rejected(local, changes):
+    snapshot = dict(item_code="pal_18", unit_price_ron="50", normalized_unit="m²", catalog_item_id=str(uuid4()),
+                    applied_at="2026-11-13T10:00:00Z", source_type="manual_catalog", is_override=False) | changes
+    entry = dict(item_code="pal_18", item_name="PAL", unit="m²", unit_price_ron="50", currency="RON",
+                 source_type="manual", source_name="User catalog", updated_at="2026-11-13T10:00:00Z")
+    response = local.post(BASE, json=data(manual_price_catalog=[entry], price_snapshots=[snapshot]))
+    assert response.status_code == 422
+
+
 def test_create_read_list_update_duplicate_delete(local):
     assert local.get(BASE).json()["items"] == []
     saved = create(local, name="  Dormitor  ")

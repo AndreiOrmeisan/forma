@@ -9,6 +9,7 @@ const require = createRequire(import.meta.url);
 // Exercise the actual TS/TSX source with the existing compiler and React runtime.
 export function loadTypeScriptModule(filePath, overrides = {}) {
   const cache = new Map();
+  const relativeOverrides = new Map(Object.entries(overrides).filter(([key])=>key.startsWith(".")).map(([key,value])=>[path.resolve(path.dirname(path.resolve(filePath)),key),value]));
 
   function load(filename) {
     if (cache.has(filename)) return cache.get(filename).exports;
@@ -29,6 +30,7 @@ export function loadTypeScriptModule(filePath, overrides = {}) {
       }
       if (specifier.startsWith(".")) {
         const base = path.resolve(path.dirname(filename), specifier);
+        if (relativeOverrides.has(base)) return relativeOverrides.get(base);
         const resolved = [base, `${base}.ts`, `${base}.tsx`].find(candidate => existsSync(candidate));
         if (!resolved) throw new Error(`Cannot resolve ${specifier} from ${filename}`);
         return load(resolved);

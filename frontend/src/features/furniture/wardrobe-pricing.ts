@@ -1,4 +1,5 @@
 import { isWardrobeConfiguration, type WardrobeConfiguration } from "./wardrobe-configuration";
+import type { ProjectPriceSnapshot } from "./project-price-snapshot";
 
 export const priceItems = [
   ["pal_18", "PAL 18 mm", "m²"], ["hdf_3", "HDF 3 mm", "m²"],
@@ -18,13 +19,14 @@ export function pricingError(value: string, percentage = false): string | null {
   if (Number(value.replace(",", ".")) > (percentage ? 100 : 1000000000)) return percentage ? "Alege între 0 și 100%." : "Valoarea maximă este 1.000.000.000 RON.";
   return null;
 }
-export function pricingPayload(configuration: WardrobeConfiguration, draft: PricingDraft) {
+export function pricingPayload(configuration: WardrobeConfiguration, draft: PricingDraft, snapshots:ProjectPriceSnapshot[] = []) {
   const decimal = (key: string) => draft[key].replace(",", ".");
   return {
     configuration, confirmed: true,
     price_catalog: priceItems.filter(([code]) => draft[code].trim() !== "").map(([code, name, unit]) => ({
       item_code: code, item_name: name, unit, unit_price_ron: decimal(code), currency: "RON",
-      source_type: "manual", source_name: "Introducere manuală", updated_at: new Date().toISOString(),
+      source_type: "manual", source_name: snapshots.find(s=>s.item_code===code)?.supplier_name || (snapshots.find(s=>s.item_code===code)?.source_type==="manual_catalog" ? "Catalog personal" : "Introducere manuală"),
+      updated_at: snapshots.find(s=>s.item_code===code)?.applied_at || new Date().toISOString(),
     })),
     waste_allowances: { pal: decimal("pal"), hdf: decimal("hdf"), abs: decimal("abs") },
     labor_cost_ron: decimal("labor"), markup_percent: decimal("markup"),

@@ -12,6 +12,8 @@ In explicit `api` mode, the retained Supabase SDK manages sessions/refresh and G
 
 ## Manual pricing
 
+The personal browser catalog lives in `frontend/src/features/catalog/`, exposed at `/setari/furnizori` from both dashboard and furniture headers. Its typed repository and `ManualCatalogPriceSource` resolve stable item codes to explicitly preferred active offers after backend quantity calculation. Sheet offers normalize to an equivalent area rate; no second financial calculator exists in React. Project state separates catalog offers from immutable applied snapshots/manual overrides. Existing projects require preview/confirmation/backend recalculation before price refresh. Browser project envelope v1 migrates in memory, with explicit writes using v2; domain/calculation versions stay unchanged. Catalog import/export is separate from project persistence and never rewrites projects. See [supplier catalog](supplier-catalog.md).
+
 The furniture estimate endpoint separates existing quantity engines, manual price sourcing and Decimal cost estimation. It accepts confirmed configuration and a typed manual catalog, never authoritative client quantities. Temporary frontend project context preserves pricing inputs across navigation. The backend owns totals; missing required prices suppress the final selling price. Stable item codes and a minimal PriceProvider protocol allow future authorized supplier adapters without changing geometry or cost formulas. See [future supplier pricing](future-supplier-pricing.md).
 
 ## Architectural principle

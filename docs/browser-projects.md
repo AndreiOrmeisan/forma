@@ -25,7 +25,7 @@ The saved editor restores configuration before waiting for an estimate. If the b
 - People sharing one browser profile can see the same projects; there is no per-user privacy in this mode.
 - Browser quotas vary. Blocked/quota-exceeded writes show an error, never a false success or a replacement of the previous record.
 - A shared UUID URL does not transfer the project to another device.
-- Export/import and automatic migration to SQLite/Supabase are not implemented. Switching modes must not delete local records.
+- Project export/import and automatic migration to SQLite/Supabase are not implemented. The separate supplier catalog has its own JSON backup, which excludes projects. Switching modes must not delete local records.
 
 ## Implementation and integrity
 
@@ -35,7 +35,7 @@ The saved editor restores configuration before waiting for an estimate. If the b
 - Adapter: [browser-project-store.ts](../frontend/src/features/furniture/browser-project-store.ts).
 - Tests: [browser-projects.test.mjs](../frontend/tests/browser-projects.test.mjs).
 
-One record per key, `forma:wardrobe-project:v1:<UUID>`, contains `{storage_version:1, project:...}`. Existing `forma-mode`, SDK sessions and unrelated keys are untouched; no `localStorage.clear()` is used. Inputs use current wardrobe/pricing validation before writes. Edits advance revision/UTC time; duplication creates a new UUID and draft status.
+One record per stable key, `forma:wardrobe-project:v1:<UUID>`, now writes `{storage_version:2, project:...}` and also reads version 1. Legacy prices receive manual snapshots in memory without rewriting on open; explicit save persists v2. Catalog changes do not update historical project prices. See [supplier catalog](supplier-catalog.md) for snapshot/refresh rules. Existing `forma-mode`, SDK sessions and unrelated keys are untouched; no `localStorage.clear()` is used. Inputs use current wardrobe/pricing validation before writes. Edits advance revision/UTC time; duplication creates a new UUID and draft status.
 
 Web Locks serialize same-origin writes where supported. Separate project keys prevent unrelated record overwrites. Stale edits/deletes fail revision checks. Without Web Locks, avoid simultaneous same-project edits in multiple tabs; this is not a production database transaction system.
 

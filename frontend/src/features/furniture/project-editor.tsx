@@ -27,7 +27,7 @@ function ProjectEditorContent({id}: {id: string}) {
   const {user,loading:authLoading} = useAuth();
   const userId = user?.id;
   const [requiresLogin,setRequiresLogin] = useState(false);
-  const { restoreProject, savedProject, confirmed, pricing } = useWardrobeProject();
+  const { restoreProject, savedProject, confirmed, pricing,acceptCalculation } = useWardrobeProject();
   const [loaded, setLoaded] = useState<{project: FurnitureProject; estimate: Estimate | null; estimateError?:string} | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -75,7 +75,7 @@ function ProjectEditorContent({id}: {id: string}) {
       <div className={styles.editorResults}>
         {!confirmed && <p role="status" className={styles.notice}>Ai modificat configurația. Confirmă valorile pentru a recalcula materialele și devizul.</p>}
         {confirmed && <>
-          <WardrobeCalculation key={`calculation-${JSON.stringify(confirmed)}`} configuration={confirmed} />
+          <WardrobeCalculation key={`calculation-${JSON.stringify(confirmed)}`} configuration={confirmed} onCalculated={acceptCalculation} />
           <WardrobePricingForm key={`pricing-${JSON.stringify(confirmed)}`} configuration={confirmed} initialEstimate={JSON.stringify(confirmed) === JSON.stringify(loaded.project.confirmed_configuration) && JSON.stringify(pricing) === JSON.stringify(restorePricing(loaded.project)) ? loaded.estimate || undefined : undefined} />
         </>}
         <ProjectSaveForm />

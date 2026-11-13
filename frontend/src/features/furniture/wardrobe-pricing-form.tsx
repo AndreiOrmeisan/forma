@@ -3,18 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import type { WardrobeConfiguration } from "./wardrobe-configuration";
 import { useWardrobeProject } from "./wardrobe-project-context";
-import { formatMoney, isEstimate, priceItems, pricingError, pricingPayload, type Estimate } from "./wardrobe-pricing";
+import { formatMoney, priceItems, pricingError, type Estimate } from "./wardrobe-pricing";
 import { formatExactDecimal } from "./calculate-wardrobe";
 import styles from "./wardrobe-pricing.module.css";
 import { invalidPricing } from "./project-api";
+import { estimateWardrobe } from "./estimate-wardrobe";
+import { ProjectCatalogPricing } from "../catalog/project-catalog-pricing";
 
 export function WardrobePricingForm({ configuration, initialEstimate }: { configuration: WardrobeConfiguration; initialEstimate?: Estimate }) {
-  const { pricing, updatePricing } = useWardrobeProject();
+  const { pricing, updatePricing,priceSnapshots=[],appliedEstimate } = useWardrobeProject();
   const signature = JSON.stringify({ configuration, pricing });
   const [initialSignature] = useState(signature);
   const [generatedResult, setResult] = useState<{ signature: string; estimate: Estimate } | null>(null);
-  const result = generatedResult || (initialEstimate && initialSignature === signature ? {signature,estimate:initialEstimate} : null);
+  const result = appliedEstimate?.signature===signature ? appliedEstimate : generatedResult || (initialEstimate && initialSignature === signature ? {signature,estimate:initialEstimate} : null);
   const [busy, setBusy] = useState(false);
+  const [catalogBusy,setCatalogBusy]=useState(false);
   const [error, setError] = useState<string | null>(null);
   const request = useRef<AbortController | null>(null);
   useEffect(() => () => request.current?.abort(), []);
@@ -28,14 +31,7 @@ export function WardrobePricingForm({ configuration, initialEstimate }: { config
     setBusy(true); setError(null);
     const timeout = window.setTimeout(() => controller.abort(), 20000);
     try {
-      const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-      const response = await fetch(`${base.replace(/\/$/, "")}/api/v1/furniture/estimate`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
-        body: JSON.stringify(pricingPayload(configuration, pricing)),
-      });
-      if (!response.ok) throw new Error("Devizul nu a putut fi calculat. Verifică datele și încearcă din nou.");
-      const data: unknown = await response.json();
-      if (!isEstimate(data)) throw new Error("Răspunsul de calcul este incomplet sau invalid.");
+      const data = await estimateWardrobe(configuration,pricing,priceSnapshots,controller.signal);
       setResult({ signature, estimate: data });
     } catch (reason) {
       setError(controller.signal.aborted ? "Calculul a fost întrerupt sau a durat prea mult. Încearcă din nou." : reason instanceof Error ? reason.message : "Serviciul nu răspunde.");
@@ -47,7 +43,7 @@ export function WardrobePricingForm({ configuration, initialEstimate }: { config
     const message = optional && !value.trim() ? null : pricingError(value, percentage);
     return <div className={styles.field} key={key}>
       <label htmlFor={`price-${key}`}>{label}<span>{unit}</span></label>
-      <input id={`price-${key}`} type="text" inputMode="decimal" autoComplete="off" value={value}
+      <input id={`price-${key}`} type="text" inputMode="decimal" autoComplete="off" value={value} disabled={catalogBusy}
         placeholder={optional ? "Necompletat" : "0"} aria-invalid={!!message} aria-describedby={message ? `error-${key}` : undefined}
         onChange={event => updatePricing(key, event.target.value)} />
       {message && <p id={`error-${key}`} className={styles.error}>{message}</p>}
@@ -57,12 +53,13 @@ export function WardrobePricingForm({ configuration, initialEstimate }: { config
   return <section className={styles.section} aria-labelledby="pricing-title">
     <header><p className={styles.eyebrow}>PREȚURI MANUALE · RON</p><h2 id="pricing-title">De la materiale la deviz.</h2>
       <p>Introdu prețurile tale. Câmpul gol înseamnă preț lipsă; zero este un preț explicit. Nu folosim prețuri de piață demonstrative.</p></header>
-    <form noValidate onSubmit={event => { event.preventDefault(); if (!invalid && !busy) void generate(); }}>
+    <ProjectCatalogPricing configuration={configuration} onBusyChange={setCatalogBusy} />
+    <form noValidate onSubmit={event => { event.preventDefault(); if (!invalid && !busy && !catalogBusy) void generate(); }}>
       <fieldset><legend>Prețuri materiale</legend><div className={styles.grid}>{priceItems.slice(0, 4).map(([code, label, unit]) => field(code, label, `RON/${unit}`, false, true))}</div></fieldset>
       <details className={styles.details}><summary>Prețuri feronerie · 5 articole</summary><div className={styles.grid}>{priceItems.slice(4).map(([code, label, unit]) => field(code, label, `RON/${unit}`, false, true))}</div></details>
       <details className={styles.details}><summary>Pierderi materiale · implicit 0%</summary><p>Se aplică numai costurilor. Nu modifică debitarea și nu reprezintă optimizarea plăcilor.</p><div className={styles.grid}>{field("pal", "Pierderi PAL", "%", true)}{field("hdf", "Pierderi HDF", "%", true)}{field("abs", "Pierderi ABS", "%", true)}</div></details>
       <fieldset><legend>Manoperă și adaos</legend><div className={styles.grid}>{field("labor", "Manoperă fixă", "RON")}{field("markup", "Adaos comercial", "%", true)}</div><p>Adaosul se aplică peste producție (materiale + feronerie + manoperă). Nu reprezintă marja de profit.</p></fieldset>
-      <button className={styles.primary} type="submit" disabled={invalid || busy}>{busy ? "Calculăm devizul…" : "Aplică prețurile și generează devizul"}</button>
+      <button className={styles.primary} type="submit" disabled={invalid || busy || catalogBusy}>{busy ? "Calculăm devizul…" : "Aplică prețurile și generează devizul"}</button>
     </form>
     {error && <p role="alert" className={styles.error}>{error}</p>}
     {stale && <p role="status">Datele au fost modificate. Aplică din nou prețurile pentru un deviz actualizat.</p>}

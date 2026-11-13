@@ -1,10 +1,11 @@
 import { isProject, projectUuid, type FurnitureProject, type ProjectInput, type ProjectPage } from "./project-contract";
 import { pricingError } from "./wardrobe-pricing";
+import { migrateManualSnapshots } from "./project-price-snapshot";
 
 export const browserProjectPrefix = "forma:wardrobe-project:v1:";
 const lockName = "forma:wardrobe-project-writes:v1";
 type StoredProject = ProjectInput & {id:string; created_at:string; updated_at:string; revision:number};
-const inputFields = ["domain","name","description","status","confirmed_configuration","manual_price_catalog","waste_allowances","labor_cost","markup_percentage","schema_version","construction_profile_id","calculation_version"];
+const inputFields = ["domain","name","description","status","confirmed_configuration","manual_price_catalog","waste_allowances","labor_cost","markup_percentage","schema_version","construction_profile_id","calculation_version","price_snapshots"];
 
 export class BrowserProjectError extends Error {
   constructor(message:string, public status=422) {super(message);}
@@ -54,7 +55,7 @@ function validateInput(value:unknown, historical=false): ProjectInput {
   }
   const candidate = {...input,name,id:"00000000-0000-4000-8000-000000000000",created_at:new Date().toISOString(),updated_at:new Date().toISOString(),revision:1,compatible,deviz_complete:null,warnings:[]};
   if (!isProject(candidate)) return fail();
-  return structuredClone({...input,name});
+  return structuredClone({...input,name,price_snapshots:migrateManualSnapshots(input.manual_price_catalog,input.price_snapshots)});
 }
 
 function record(stored:StoredProject): FurnitureProject {
@@ -68,7 +69,7 @@ function read(id:string): FurnitureProject {
   if (raw === null) throw new BrowserProjectError("Proiectul nu există în acest browser sau a fost șters.",404);
   try {
     const envelope = JSON.parse(raw);
-    if (!onlyKeys(envelope,["storage_version","project"]) || envelope.storage_version !== 1 ||
+    if (!onlyKeys(envelope,["storage_version","project"]) || (envelope.storage_version !== 1 && envelope.storage_version !== 2) ||
       !onlyKeys(envelope.project,[...inputFields,"id","created_at","updated_at","revision"])) throw new Error();
     const {id:storedId,created_at,updated_at,revision,...input} = envelope.project;
     if (storedId !== id || !Number.isSafeInteger(revision) || Number(revision) < 1 ||
@@ -97,7 +98,7 @@ function write(project:StoredProject): FurnitureProject {
   const input = Object.fromEntries(inputFields.map(key=>[key,project[key as keyof ProjectInput]]));
   const validated = validateInput(input);
   const clean = {...validated,id,created_at,updated_at,revision};
-  try {storage().setItem(browserProjectPrefix+id,JSON.stringify({storage_version:1,project:clean}));}
+  try {storage().setItem(browserProjectPrefix+id,JSON.stringify({storage_version:2,project:clean}));}
   catch {throw new BrowserProjectError("Proiectul nu a putut fi salvat. Spațiul browserului poate fi plin sau blocat. Datele introduse rămân în pagină; nu am înlocuit proiectul existent.",0);}
   return record(clean);
 }
@@ -142,7 +143,7 @@ export async function browserProjectRequest(path:string, options:RequestInit={})
     }
     if (method === "PATCH" && !match[2]) {
       const patch = body();
-      const mutable = ["name","description","status","confirmed_configuration","manual_price_catalog","waste_allowances","labor_cost","markup_percentage"];
+      const mutable = ["name","description","status","confirmed_configuration","manual_price_catalog","waste_allowances","labor_cost","markup_percentage","price_snapshots"];
       if (!onlyKeys(patch,["expected_revision",...mutable]) || !Number.isSafeInteger(patch.expected_revision) || Number(patch.expected_revision)<1) throw new BrowserProjectError("Modificările proiectului sunt invalide.");
       if (patch.expected_revision !== current.revision || !current.compatible) return conflict();
       const input = Object.fromEntries(inputFields.map(key=>[key,current[key as keyof ProjectInput]]));

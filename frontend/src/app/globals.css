@@ -394,6 +394,13 @@ h2 {
   gap: 24px;
 }
 
+.catalog-header-link { max-width: 105px; line-height: 1.5; }
+@media (max-width: 430px) {
+  .app-header { gap: 10px; }
+  .header-brand { gap: 12px; }
+  .catalog-header-link { max-width: 90px; font-size: 11px; }
+}
+
 .domain-back-link, .projects-link {
   display: inline-flex;
   align-items: center;

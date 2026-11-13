@@ -15,7 +15,7 @@ import { ProjectSaveForm } from "@/features/furniture/project-save-form";
 
 export function WardrobeResult() {
   const { image } = useImageDraft();
-  const { confirmed } = useWardrobeProject();
+  const { confirmed,acceptCalculation } = useWardrobeProject();
   if (!confirmed) {
     if (!image) return <ProjectRecovery />;
     return (
@@ -44,7 +44,7 @@ export function WardrobeResult() {
           ))}
         </dl>
       </div>
-      <WardrobeCalculation key={JSON.stringify(confirmed)} configuration={confirmed} />
+      <WardrobeCalculation key={JSON.stringify(confirmed)} configuration={confirmed} onCalculated={acceptCalculation} />
       <WardrobePricingForm key={`pricing-${JSON.stringify(confirmed)}`} configuration={confirmed} />
       <ProjectSaveForm />
       <Link href={furnitureRoutes.reviewProject} className={styles.backLink}>Modifică configurația</Link>

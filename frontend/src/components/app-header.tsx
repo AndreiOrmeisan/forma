@@ -13,6 +13,7 @@ export function AppHeader({ showDomainLink = false }: { showDomainLink?: boolean
           </Link>
         )}
       </div>
+      <Link href="/setari/furnizori" className="domain-back-link catalog-header-link">Furnizori și prețuri</Link>
       <div className="avatar" role="img" aria-label="Avatar utilizator">
         <UserRound size={20} strokeWidth={1.5} aria-hidden="true" />
       </div>

@@ -7,7 +7,7 @@ import type { WardrobeConfiguration } from "./wardrobe-configuration";
 import styles from "./wardrobe-result.module.css";
 import { EdgeBandingSection, HardwareSection } from "./wardrobe-estimate-sections";
 
-export function WardrobeCalculation({ configuration }: { configuration: WardrobeConfiguration }) {
+export function WardrobeCalculation({ configuration, onCalculated }: { configuration: WardrobeConfiguration; onCalculated?:(result:WardrobeCalculationResult)=>void }) {
   const [result, setResult] = useState<WardrobeCalculationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -19,7 +19,7 @@ export function WardrobeCalculation({ configuration }: { configuration: Wardrobe
       setError("Calculul durează mai mult decât era așteptat. Încearcă din nou.");
     }, 20000);
     calculateWardrobe(configuration, controller.signal)
-      .then(data => { if (!controller.signal.aborted) setResult(data); })
+      .then(data => { if (!controller.signal.aborted) {setResult(data);onCalculated?.(data);} })
       .catch(reason => {
         if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Calculul nu poate fi finalizat.");
       })
@@ -28,7 +28,7 @@ export function WardrobeCalculation({ configuration }: { configuration: Wardrobe
       window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [configuration, attempt]);
+  }, [configuration, attempt,onCalculated]);
 
   if (!result) {
     return (

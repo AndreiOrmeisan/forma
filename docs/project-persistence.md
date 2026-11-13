@@ -1,5 +1,7 @@
 # Project persistence
 
+Sprint 11 adds optional validated project price snapshots without changing geometry/calculation versions or enabling backend persistence. Default browser projects read envelope v1/v2 and write v2 only on explicit save. Catalog edits never rewrite projects; confirmed price refresh saves only rates/snapshots after backend estimation. See [supplier catalog](supplier-catalog.md) for exact migration, provenance and backup boundaries.
+
 For the complete laptop setup see [INIT](INIT.md); for actual service addresses and deployment variables see [services and deployment](services-and-deployment.md). Cloud setup status is owner-managed; source support is not a claim that it is active online.
 
 ## Online account mode

@@ -9,9 +9,10 @@ import styles from "./projects.module.css";
 import { useAuth } from "../auth/auth-context";
 import { AccountPanel } from "../auth/account-panel";
 import { browserStorageNotice, getProjectStorageMode } from "../../config/project-storage";
+import { migrateManualSnapshots, snapshotFingerprint } from "./project-price-snapshot";
 
 export function ProjectSaveForm({ available }: {available?: boolean}) {
-  const { confirmed, draft, pricing, savedProject, markSaved } = useWardrobeProject();
+  const { confirmed, draft, pricing, savedProject, markSaved,priceSnapshots } = useWardrobeProject();
   const {user,loading:authLoading} = useAuth();
   const [capability, setCapability] = useState<ProjectCapabilities | null>(() => available ? {enabled:true, reason:null,storage:getProjectStorageMode() === "browser" ? "browser" : undefined} : null);
   const [name, setName] = useState(savedProject?.name || "");
@@ -21,10 +22,10 @@ export function ProjectSaveForm({ available }: {available?: boolean}) {
   const [error, setError] = useState<string | null>(null);
   const [savedSignature, setSavedSignature] = useState<string | null>(null);
   const [checkAttempt, setCheckAttempt] = useState(0);
-  const signature = JSON.stringify({confirmed, pricing, name, description, status});
+  const signature = JSON.stringify({confirmed, pricing, name, description, status,priceSnapshots});
   const dirty = savedProject ? name.trim() !== savedProject.name || description.trim() !== (savedProject.description || "") || status !== savedProject.status ||
     JSON.stringify(draft ? validateWardrobeDraft(draft).configuration : null) !== JSON.stringify(savedProject.confirmed_configuration) ||
-    pricingFingerprint(pricing) !== pricingFingerprint(restorePricing(savedProject)) : !!name.trim();
+    pricingFingerprint(pricing) !== pricingFingerprint(restorePricing(savedProject)) || snapshotFingerprint(priceSnapshots || []) !== snapshotFingerprint(migrateManualSnapshots(savedProject.manual_price_catalog,savedProject.price_snapshots)) : !!name.trim();
   const nameError = name.trim().length === 0 ? "Dă un nume proiectului." : name.trim().length > 120 ? "Folosește cel mult 120 de caractere." : null;
   const needsLogin = capability?.requires_auth === true && (!user || authLoading);
   useEffect(() => {
@@ -44,7 +45,7 @@ export function ProjectSaveForm({ available }: {available?: boolean}) {
     if (!confirmed || nameError || invalidPricing(pricing) || !capability?.enabled || needsLogin) return;
     setBusy(true); setError(null);
     try {
-      const payload = projectPayload(confirmed, pricing, {name, description, status}, savedProject);
+      const payload = projectPayload(confirmed, pricing, {name, description, status}, savedProject,priceSnapshots);
       const result = await saveProject(payload, savedProject);
       markSaved(result);
       setSavedSignature(signature);

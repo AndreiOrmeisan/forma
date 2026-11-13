@@ -4,7 +4,9 @@ See the [documentation index](README.md), [wardrobe engine](wardrobe-engine.md) 
 
 Quantity calculation, price sourcing, and cost estimation are separate responsibilities. The furniture engine recalculates quantities from confirmed configuration; clients cannot submit authoritative material quantities. `pricing.py` defines stable item codes, validated price entries, a small `PriceProvider` protocol and the only implemented adapter, `ManualPriceProvider`. The cost engine reads normalized entries, not provider-specific payloads. The HTTP boundary currently accepts manual RON prices only.
 
-Future adapters may use official APIs or authorized product feeds only. No scraping, external pricing requests, scheduled synchronization, supplier database or functioning supplier integration exists now. Extend the validated source contract when implementing an actual adapter; never relabel supplier prices as manual.
+Sprint 11 implements a user-maintained [browser supplier catalog](supplier-catalog.md), not an external supplier integration. Its only price source is `ManualCatalogPriceSource`; the existing backend manual price contract and Decimal cost engine remain authoritative. Frozen project snapshots separately record catalog provenance and manual overrides. No supplier database or public supplier CRUD exists.
+
+Future adapters may use official APIs or authorized product feeds only. No scraping, external pricing requests, scheduled synchronization or functioning external supplier integration exists now. Extend the validated source contract when implementing an actual external adapter; never relabel externally fetched supplier prices as manual.
 
 An adapter should preserve supplier name, supplier product identifier, product URL when supplied, original unit/currency, normalized unit price, last-updated timestamp and optional availability. Match products to stable item codes using material, thickness, edge type and hardware specifications, not display-name similarity. Normalize packs, sheet areas, lengths and pieces explicitly; reject ambiguous units. RON is the sole supported currency today; currency conversion requires an explicit future policy.
 

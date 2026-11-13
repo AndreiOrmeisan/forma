@@ -4,6 +4,7 @@ import { furnitureRoutes } from "../../config/domains";
 import { projectAccessToken } from "../auth/supabase-client";
 import { getProjectStorageMode } from "../../config/project-storage";
 import { browserProjectCapabilities, browserProjectRequest } from "./browser-project-store";
+import { snapshotsMatchPrices, type ProjectPriceSnapshot } from "./project-price-snapshot";
 
 import { isProject, projectUuid, type FurnitureProject, type ProjectInput, type ProjectCapabilities } from "./project-contract";
 export { isProject, projectUuid } from "./project-contract";
@@ -89,29 +90,42 @@ export function pricingFingerprint(draft: PricingDraft): string {
 }
 
 export function projectPayload(configuration: WardrobeConfiguration, pricing: PricingDraft,
-  metadata: {name: string; description: string; status: "draft" | "completed"}, saved: FurnitureProject | null): ProjectInput {
-  const prices = pricingPayload(configuration, pricing);
+  metadata: {name: string; description: string; status: "draft" | "completed"}, saved: FurnitureProject | null, snapshots?:ProjectPriceSnapshot[]): ProjectInput {
+  const prices = pricingPayload(configuration, pricing,snapshots);
+  // Older callers can still edit prices without providing snapshot metadata.
+  // Retain only matching historical snapshots; missing ones migrate as manual.
+  const retained=saved?.price_snapshots?.filter(snapshot=>snapshotsMatchPrices([snapshot],prices.price_catalog));
   return {
     domain: "furniture", name: metadata.name.trim(), description: metadata.description.trim() || null, status: metadata.status,
     confirmed_configuration: configuration,
     manual_price_catalog: prices.price_catalog.map(entry => {
-      const original = saved?.manual_price_catalog.find(old => old.item_code === entry.item_code && old.unit_price_ron === entry.unit_price_ron);
+      const snapshot=snapshots?.find(s=>s.item_code===entry.item_code),oldSnapshot=saved?.price_snapshots?.find(s=>s.item_code===entry.item_code);
+      const original = saved?.manual_price_catalog.find(old => old.item_code === entry.item_code && old.unit_price_ron === entry.unit_price_ron && (!snapshot || JSON.stringify(snapshot)===JSON.stringify(oldSnapshot)));
       return original || entry;
     }),
     waste_allowances: prices.waste_allowances, labor_cost: prices.labor_cost_ron, markup_percentage: prices.markup_percent,
     schema_version: saved?.schema_version || 1,
     construction_profile_id: saved?.construction_profile_id || "forma-wardrobe-poc-v1",
     calculation_version: saved?.calculation_version || "wardrobe-v1",
+    ...(snapshots ? {price_snapshots:snapshots} : retained ? {price_snapshots:retained} : {}),
   };
 }
 
 export async function saveProject(payload: ProjectInput, saved: FurnitureProject | null): Promise<FurnitureProject> {
   let body: object = payload;
   if (saved) {
-    const {name, description, status, confirmed_configuration, manual_price_catalog, waste_allowances, labor_cost, markup_percentage} = payload;
-    body = {name, description, status, confirmed_configuration, manual_price_catalog, waste_allowances, labor_cost, markup_percentage, expected_revision: saved.revision};
+    const {name, description, status, confirmed_configuration, manual_price_catalog, waste_allowances, labor_cost, markup_percentage,price_snapshots} = payload;
+    body = {name, description, status, confirmed_configuration, manual_price_catalog, waste_allowances, labor_cost, markup_percentage,...(price_snapshots ? {price_snapshots} : {}), expected_revision: saved.revision};
   }
   const value = await projectRequest(saved ? `projects/${saved.id}` : "projects", {method: saved ? "PATCH" : "POST", body: JSON.stringify(body)});
   if (!isProject(value) || !value.compatible || (saved && value.id !== saved.id)) throw new ProjectApiError("Serverul nu a confirmat un proiect valid. Verifică lista proiectelor înainte de a reîncerca salvarea.", 500);
+  return value;
+}
+
+export async function saveProjectPrices(saved:FurnitureProject,configuration:WardrobeConfiguration,pricing:PricingDraft,snapshots:ProjectPriceSnapshot[]):Promise<FurnitureProject>{
+  const prices=pricingPayload(configuration,pricing,snapshots);
+  const value=await projectRequest(`projects/${saved.id}`,{method:"PATCH",body:JSON.stringify({expected_revision:saved.revision,
+    manual_price_catalog:prices.price_catalog,price_snapshots:snapshots})});
+  if(!isProject(value) || value.id!==saved.id || !value.compatible)throw new ProjectApiError("Salvarea copiei de prețuri nu a fost confirmată. Verifică proiectul înainte de a reîncerca.",500);
   return value;
 }

@@ -29,6 +29,8 @@ The current POC is exclusively focused on furniture and particleboard (PAL) ward
 
 ## Conventions
 
+- Supplier catalog: `/setari/furnizori`, `frontend/src/features/catalog/`. Keep it browser-local behind `CatalogRepository`; only `ManualCatalogPriceSource` exists. Reuse stable pricing codes. Apply only explicitly preferred active offers, never cheapest/latest. Project snapshots are immutable until confirmed refresh; preserve manual overrides by default. Catalog changes/imports must never rewrite projects. Legacy project envelopes v1 migrate in memory and write v2 only on explicit save; preserve unknown/corrupt data. No supplier CRUD API, scraping or database flag activation. See `docs/supplier-catalog.md`.
+
 - Current POC default: `NEXT_PUBLIC_PROJECT_STORAGE=browser` saves validated project inputs/metadata in localStorage with no account/Supabase setup. Keep API/SQLite/cloud code intact; select it only with `api`. Never silently fall back between stores or migrate/upload/delete data on a mode switch. Browser CRUD/capabilities need no HTTP; calculations still use FastAPI. Never add images, sessions or derived totals to project records. Explain device/origin isolation, shared-browser visibility and possible data loss. See `docs/browser-projects.md`.
 
 - SQLite project persistence is local-only: explicit `FORMA_ENV=local` and `ENABLE_LOCAL_PROJECTS=true`, never on Render. Cloud projects require explicit `ENABLE_CLOUD_PROJECTS=true`, Supabase Auth verification and per-user PostgreSQL RLS. Default routes stay absent; configured public CRUD requires a verified bearer token. Never use service_role/secret keys, trust owner headers, or treat CORS as authentication. See `docs/free-online-setup.md` and `docs/project-persistence.md`.

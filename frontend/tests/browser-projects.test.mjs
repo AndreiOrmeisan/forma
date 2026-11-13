@@ -32,7 +32,7 @@ test("default browser mode saves, lists and reopens after a fresh module load wi
   assert.ok(api.projectUuid.test(saved.id));
   assert.equal(saved.deviz_complete,null);
   const persisted=JSON.parse([...rows.values()][0]);
-  assert.equal(persisted.storage_version,1);
+  assert.equal(persisted.storage_version,2);
   assert.ok(!("deviz_complete" in persisted.project) && !("selling_price_before_tax_ron" in persisted.project));
   assert.ok(!("image" in persisted.project) && !("interpretation" in persisted.project));
   const refreshed=loadTypeScriptModule("src/features/furniture/project-api.ts");

@@ -4,6 +4,8 @@ Last audited against the local source and installed tools: 2026-11-13. Read [age
 
 ## 1. Install the required tools
 
+The Sprint 11 personal supplier catalog needs no additional tools, accounts or environment variables. After local startup, open `/setari/furnizori`; data starts empty and is saved in this browser. Use its manual JSON backup before clearing site data. See [supplier catalog](supplier-catalog.md).
+
 | Tool | Required baseline | Download / notes |
 | --- | --- | --- |
 | Git | A current supported Git client | [Git downloads](https://git-scm.com/downloads/). Required for clone/version control. |
