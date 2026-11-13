@@ -102,7 +102,8 @@ test("duplicate and delete API calls target only the selected project", async co
 
 test("project name remains editable while saving waits for backend availability", () => {
   const {ProjectSaveForm} = loadTypeScriptModule("src/features/furniture/project-save-form.tsx", {
-    "./wardrobe-project-context":{useWardrobeProject:()=>({confirmed:fixture.confirmed_configuration,pricing:initialPricing(),savedProject:null,markSaved:()=>{}})},
+    "./wardrobe-project-context":{useWardrobeProject:()=>({confirmed:fixture.confirmed_configuration,pricing:initialPricing(),savedProject:null,
+      imageUrl:null,draft:null,priceSnapshots:[],projectName:"",projectDescription:"",projectStatus:"draft"})},
   });
   const html = renderToStaticMarkup(React.createElement(ProjectSaveForm));
   assert.ok(!html.includes("<fieldset disabled"));
@@ -116,7 +117,7 @@ test("project context restores editable state without inventing an interpretatio
   let state;
   const {WardrobeProjectProvider} = loadTypeScriptModule("src/features/furniture/wardrobe-project-context.tsx", {
     "../auth/auth-context":{useAuth:()=>({user:null})},
-    react:{...React,useCallback:fn=>fn,useState(initial){state ??= initial; return [state,next=>{state=typeof next==="function"?next(state):next;}];}},
+    react:{...React,useCallback:fn=>fn,useRef:()=>({current:null}),useState(initial){state ??= typeof initial==="function"?initial():initial; return [state,next=>{state=typeof next==="function"?next(state):next;}];}},
     "@/components/image-upload/image-draft-context":{useImageDraft:()=>({image:null})},
   });
   const render = () => WardrobeProjectProvider({children:null}).props.value;
@@ -139,6 +140,8 @@ test("edited save form waits for backend confirmation before reporting success",
   const state = [];
   let cursor = 0, resolveSave, marked = null, captured;
   const pending = new Promise(resolve => {resolveSave = resolve;});
+  let work = {confirmed:fixture.confirmed_configuration,draft:{width_mm:"800",height_mm:"2000",depth_mm:"600",doors_count:"2",shelves_count:"3"},
+    pricing:initialPricing(),savedProject:fixture,imageUrl:null,priceSnapshots:[],projectName:fixture.name,projectDescription:"",projectStatus:"draft"};
   const {ProjectSaveForm} = loadTypeScriptModule("src/features/furniture/project-save-form.tsx", {
     react:{...React,useEffect:()=>{},useState(initial){
       const index = cursor++;
@@ -147,7 +150,9 @@ test("edited save form waits for backend confirmation before reporting success",
     }},
     "../auth/auth-context":{useAuth:()=>({user:null,loading:false})},
     "./project-api":{...api,saveProject:async (payload,saved)=>{captured={payload,saved};return pending;}},
-    "./wardrobe-project-context":{useWardrobeProject:()=>({confirmed:fixture.confirmed_configuration,draft:{width_mm:"800",height_mm:"2000",depth_mm:"600",doors_count:"2",shelves_count:"3"},pricing:initialPricing(),savedProject:fixture,markSaved:value=>{marked=value;}})},
+    "./wardrobe-project-context":{useWardrobeProject:()=>({...work,
+      updateProjectName:name=>{work={...work,projectName:name};},
+      saveDraft:async()=>{captured={payload:{name:work.projectName},saved:work.savedProject};marked=await pending;work={...work,savedProject:marked};return marked;}})},
   });
   const render = () => {cursor=0; return ProjectSaveForm({available:true});};
   let tree = render();

@@ -20,6 +20,18 @@ The saved editor restores configuration before waiting for an estimate. If the b
 
 ## Limits
 
+### Unsaved work protection (Sprint 14A)
+
+`ProjectWorkspace` keeps one active in-memory draft above the route boundary, including on GitHub Pages where `cacheComponents` is disabled. A selected sketch, an unnamed configuration, metadata changes, pricing edits and saved-project edits count as meaningful work. Invalid or cancelled image replacement preserves the current image/configuration/pricing. A valid replacement deliberately resets image-dependent work.
+
+Leaving the workflow through a same-tab link opens an accessible Romanian dialog: **Rămâi**, **Salvează proiectul**, **Continuă fără salvare**. Saving requires a name, a confirmed valid configuration and valid prices; unconfirmed work cannot yet be saved as a project. Persistence must succeed and no newer edits may remain before navigation resumes. Errors/conflicts leave the draft intact. The normal save form and navigation dialog share a single pending write to avoid duplicate new projects. Existing UUID/revision checks remain authoritative; no automatic saved-project overwrite is introduced.
+
+Supplier catalog links in the furniture header and project pricing open a separate tab; returning to the original tab preserves its draft. This is not cross-tab draft synchronization. Newly tracked same-document history entries are bounced back before asking whether to continue. Entries from before guard installation/reload have no reliable traversal delta: restore the source URL/router state at that entry and use an explicit new navigation if the user continues. That fallback can change history shape. Cross-document history, reload and close use `beforeunload`, subject to browser user-activation/mobile limitations; browsers choose their own warning text and can suppress it. Internal links have their own guard and do not rely solely on `beforeunload`.
+
+There is **no persisted temporary draft snapshot**. Rejecting a navigation preserves the draft, but confirming reload/close or explicit discard loses unsaved work. Photographs cannot be restored after a full reload; saved projects retain only their previously saved inputs. Recovery screens offer upload again. This choice avoids extra localStorage schemas, image storage and implicit duplicate projects. Never describe the in-memory draft as a saved project or a crash-safe backup.
+
+Regression tests in `frontend/tests/unsaved-project.test.mjs` exercise component handlers/state and a deterministic history/event model. These do not prove native browser dialogs, actual Next popstate scheduling, focus trapping, mobile suspension or bfcache behavior. See the [workshop audit](audits/sprint-13-workshop-readiness.md) for verification status and manual scenarios.
+
 - Storage belongs to this browser profile/site origin on this device, not an account. Other devices/browsers and localhost vs GitHub Pages have separate histories.
 - Clearing site data, browser eviction, private browsing cleanup or losing the device can remove projects. This is not durable backup or encryption.
 - People sharing one browser profile can see the same projects; there is no per-user privacy in this mode.

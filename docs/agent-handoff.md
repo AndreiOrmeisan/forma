@@ -4,6 +4,8 @@ Source/context snapshot: 2026-11-13. Read [INIT](INIT.md) for installation, then
 
 ## Product and communication
 
+Sprint 14A: root `ProjectWorkspace` now owns the temporary sketch/furniture state, independently of route caching. Invalid image candidates never clear existing work. Central dirty detection and an accessible save/stay/discard dialog protect internal links/history; native unload warnings cover reload/close within browser limitations. Supplier links from editing open separately. No draft snapshot, database flag or calculation/PDF rule change. Read [browser saving](browser-projects.md) and the [audit resolution](audits/sprint-13-workshop-readiness.md) before changing provider lifetime or navigation. Native browser automation was unavailable during this change; do not infer deployed/native verification from handler tests.
+
 FORMA is a modular estimation platform. The implemented POC is exclusively **wardrobes made from PAL**. Other domains are visible but unavailable. UI and explanations to the owner are Romanian; code, identifiers and technical docs are English.
 
 Use the established Minimal Premium design: background `#F8F7F4`, white surface, charcoal `#22201E`, secondary `#817C75`, warm accent `#EAD9C9`, Geist and Lucide. Keep mobile layouts intentional at 360/390/430 px and desktop constrained. Avoid new component frameworks or unrelated product features.

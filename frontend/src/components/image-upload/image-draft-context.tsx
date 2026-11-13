@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { ValidatedImage } from "./validate-image";
 
 type ImageDraft = {
@@ -11,13 +11,21 @@ type ImageDraft = {
 const ImageDraftContext = createContext<ImageDraft | null>(null);
 
 export function ImageDraftProvider({ children }: { children: ReactNode }) {
-  const [image, setImage] = useState<ValidatedImage | null>(null);
+  const [image, setImageState] = useState<ValidatedImage | null>(null);
+  const current = useRef<ValidatedImage | null>(null);
+
+  const setImage = useCallback((next: ValidatedImage | null) => {
+    const previous = current.current;
+    current.current = next;
+    setImageState(next);
+    if (previous && previous.url !== next?.url) URL.revokeObjectURL(previous.url);
+  }, []);
 
   useEffect(() => {
     return () => {
-      if (image) URL.revokeObjectURL(image.url);
+      if (current.current) URL.revokeObjectURL(current.current.url);
     };
-  }, [image]);
+  }, []);
 
   return (
     <ImageDraftContext.Provider value={{ image, setImage }}>

@@ -1,0 +1,16 @@
+.dialog { position:fixed; margin:auto; width:min(100% - 32px,480px); max-height:calc(100dvh - 32px); overflow:auto; border:1px solid #dfd2c4; border-radius:22px; padding:28px; background:#fff; color:#22201e; }
+.dialog::backdrop { background:rgb(34 32 30 / .4); }
+.dialog h2 { margin:0 0 14px; font-size:25px; letter-spacing:-.6px; }
+.dialog p { font-size:14px; line-height:1.7; color:#68625b; }
+.hint { font-size:12px!important; }
+.field { display:grid; gap:8px; margin:20px 0; font-size:14px; }
+.field input { width:100%; min-height:48px; border:1px solid #d9d3cb; background:#f8f7f4; border-radius:11px; padding:12px; font:inherit; }
+.actions { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:24px; }
+.actions button { min-height:48px; border-radius:12px; padding:12px; font:inherit; font-size:14px; cursor:pointer; }
+.primary { color:#fff; background:#22201e; border:1px solid #22201e; }
+.secondary { color:#22201e; background:#fff; border:1px solid #d9d3cb; }
+.discard { grid-column:1/-1; color:#7d3d30; background:transparent; border:1px solid #dfc6bc; }
+.dialog :is(button,input):focus-visible { outline:3px solid #71533b; outline-offset:3px; }
+.dialog button:disabled { opacity:.5; cursor:not-allowed; }
+.error { color:#963d30!important; }
+@media(max-width:390px) { .dialog { padding:22px; }.actions { grid-template-columns:1fr; } }

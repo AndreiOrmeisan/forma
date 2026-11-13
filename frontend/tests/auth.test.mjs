@@ -43,7 +43,7 @@ test("account UI explains configuration, supports Google login and shows only pu
 test("switching accounts clears previous project state; first login preserves guest input",()=>{
   let user=null,state;
   const {WardrobeProjectProvider} = loadTypeScriptModule("src/features/furniture/wardrobe-project-context.tsx", {
-    react:{...React,useCallback:fn=>fn,useState(initial){state ??= initial;return [state,next=>{state=typeof next==="function"?next(state):next;}];}},
+    react:{...React,useCallback:fn=>fn,useRef:()=>({current:null}),useState(initial){state ??= typeof initial==="function"?initial():initial;return [state,next=>{state=typeof next==="function"?next(state):next;}];}},
     "../auth/auth-context":{useAuth:()=>({user})},
     "@/components/image-upload/image-draft-context":{useImageDraft:()=>({image:null})},
   });

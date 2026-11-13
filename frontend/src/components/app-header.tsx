@@ -14,7 +14,7 @@ export function AppHeader({ showDomainLink = false }: { showDomainLink?: boolean
           </Link>
         )}
       </div>
-      {showDomainLink && <Link href={furnitureRoutes.suppliers} className="catalog-header-link"><Store size={16} aria-hidden="true" /><span>Furnizori și prețuri</span></Link>}
+      {showDomainLink && <Link href={furnitureRoutes.suppliers} target="_blank" rel="noopener noreferrer" className="catalog-header-link"><Store size={16} aria-hidden="true" /><span>Furnizori și prețuri ↗</span></Link>}
       <div className="avatar" role="img" aria-label="Avatar utilizator">
         <UserRound size={20} strokeWidth={1.5} aria-hidden="true" />
       </div>

@@ -69,9 +69,9 @@ export function ProjectCatalogPricing({configuration,onBusyChange}:{configuratio
   }
   const next=preview ? applyOffers(pricing,priceSnapshots,preview.offers,"refresh",retain) : null;
   return <section className={styles.projectCatalog} aria-label="Prețuri din catalogul personal">
-    <div className={styles.toolbar}><Link className={styles.link} href={catalogRoute}>Furnizori și prețuri</Link>
+    <div className={styles.toolbar}><Link className={styles.link} href={catalogRoute} target="_blank" rel="noopener noreferrer">Furnizori și prețuri ↗</Link>
       <button type="button" className={styles.secondary} disabled={busy || !ready || invalidPricing(pricing)} onClick={()=>void openPreview()}>Actualizează prețurile din catalog</button></div>
-    <p>Catalogul este personal acestui browser. Proiectele păstrează o copie a prețurilor; modificările catalogului nu le actualizează automat.</p>
+    <p>Catalogul se deschide într-o filă nouă, pentru a păstra proiectul curent. Proiectele păstrează o copie a prețurilor; modificările catalogului nu le actualizează automat.</p>
     {notice && <p role="status">{notice}</p>}
     {unresolved.length>0 && <details><summary>Articole fără ofertă implicită ({unresolved.length})</summary><ul className={styles.changes}>{unresolved.map(offer=><li key={offer.item_code}>{offer.message}</li>)}</ul></details>}
     {error && <div role="alert"><p className={styles.error}>{error}</p>{!savedProject && !catalogInitialized && <button type="button" className={styles.secondary} disabled={busy} onClick={()=>setAttempt(value=>value+1)}>Reîncearcă aplicarea inițială</button>}</div>}

@@ -22,7 +22,6 @@ export function SketchUploader({ onContinue }: { onContinue: () => void }) {
     const currentRequest = ++requestId.current;
     setIsProcessing(true);
     setError("");
-    setImage(null);
     try {
       const validated = await validateImage(file);
       if (requestId.current !== currentRequest) {
@@ -54,7 +53,7 @@ export function SketchUploader({ onContinue }: { onContinue: () => void }) {
         )}
         <UploadActions onSelect={selectImage} disabled={isProcessing} replacing={Boolean(image)} />
         {image && (
-          <button type="button" className={styles.deleteButton} onClick={() => { setImage(null); setError(""); }}>
+          <button type="button" className={styles.deleteButton} disabled={isProcessing} onClick={() => { requestId.current += 1; setImage(null); setError(""); }}>
             <Trash2 size={16} aria-hidden="true" /> Șterge
           </button>
         )}
