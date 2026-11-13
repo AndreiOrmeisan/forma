@@ -1,5 +1,7 @@
 # FORMA architecture
 
+Start with the [documentation index](README.md) and [agent handoff](agent-handoff.md). [INIT](INIT.md) covers laptop setup; [services and deployment](services-and-deployment.md) records hosting and environment ownership. This document describes source architecture, not proof of completed external setup.
+
 ## Project persistence
 
 Furniture projects persist validated configuration/pricing inputs with UUID, UTC timestamps, schema/profile/calculation versions and optimistic revisions. Domain-local `project_store.py` supplies explicit local SQLite; `cloud_project_store.py` reuses the same contracts for authenticated Supabase PostgreSQL. Shared `cloud_auth.py` verifies the user's token at Supabase Auth; every cloud query uses that token and an owner filter, with SQL RLS independently enforcing ownership. No admin/service-role key is used. Default CRUD is absent; local SQLite remains loopback-only and disabled on Render. Cloud CRUD is explicitly configured and requires authentication. See [free online setup](free-online-setup.md).
@@ -26,17 +28,35 @@ The monorepo contains independently installed Next.js and FastAPI applications. 
 | `/domenii/mobilier` | Existing furniture homepage |
 | `/domenii/mobilier/proiect-nou` | Validated sketch upload and camera input |
 | `/domenii/mobilier/proiect-nou/verificare` | Deterministic mock interpretation and editable configuration |
-| `/domenii/mobilier/proiect-nou/rezultat` | Confirmed configuration, cutting list, and separate net PAL/HDF areas |
-| `/domenii/mobilier/proiecte` | Furniture projects empty state |
+| `/domenii/mobilier/proiect-nou/rezultat` | Confirmed inputs, cutting/ABS/hardware results, manual pricing/deviz and save action |
+| `/domenii/mobilier/proiecte` | Saved project list, pagination, duplicate and confirmed deletion |
+| `/domenii/mobilier/proiecte/deschide?id=<UUID>` | Static-export-compatible saved editor, reload, 2D preview and recalculation |
+| `/domenii/mobilier/profil` | Account status and Google sign-in/sign-out UI, when configured |
 | `/proiect-nou` | Permanent redirect preserving earlier links |
 
 `src/config/domains.ts` owns typed domain metadata and furniture route constants. Available entries require a route. Upcoming entries require a null route and render without interactive elements. Explicit App Router files determine which domains are reachable. A shared furniture layout provides navigation and a visible return link to the platform dashboard. The existing mode selector retains its `forma-mode` localStorage key and values across route changes and reloads.
 
 Furniture components remain reusable at their existing paths. Domain boundaries are currently established through routing and configuration. Moving presentation components into domain directories can follow when another implemented domain gives that separation a concrete use.
 
-The Python package uses a `src/forma` layout. `main.py` creates the application and registers middleware and routes. `config.py` reads CORS configuration. `api/health.py` owns `GET /api/health`, returning `{"status":"ok"}`. `api/furniture.py` exposes `POST /api/v1/furniture/analyze-sketch`. Shared upload validation checks MIME type, size, and decoding. The concrete furniture mock returns fixed demonstration values and confirmation flags. Current interpretation uses deterministic mock data and performs no external AI requests.
+The Python package uses a `src/forma` layout. `main.py` creates middleware, capability reporting and conditionally mounted project routes. `config.py` reads CORS and local/cloud storage settings. `api/health.py` owns `GET /api/health`, returning `{"status":"ok"}`. `api/furniture.py` exposes the mock analysis, quantity and estimate POST endpoints. `api/projects.py` exposes CRUD only in enabled modes. Shared image validation checks MIME/size/decoding; shared cloud auth verifies identity. Interpretation remains fixed demonstration data and performs no external AI requests.
 
-The furniture frontend keeps interpretation, editable draft, and confirmed configuration in a domain-specific provider inside the generic image provider. Replacing an image clears derived domain state while preserving the upload component lifecycle. Edit validation is centralized in `features/furniture/wardrobe-configuration.ts`. The result route sends the confirmed snapshot to the calculation endpoint and displays the returned values. State stays in memory and refreshes show recovery links.
+| API method/path | Input / responsibility | Access |
+| --- | --- | --- |
+| `GET /api/health` | Health status | Public |
+| `POST /api/v1/furniture/analyze-sketch` | Multipart `file`; validate then fixed mock | Public |
+| `POST /api/v1/furniture/calculate` | `{configuration, confirmed: true}`; deterministic quantities | Public |
+| `POST /api/v1/furniture/estimate` | Confirmed configuration, manual `price_catalog`, `waste_allowances`, `labor_cost_ron`, `markup_percent` | Public; recomputes quantities, accepts no authoritative client quantities |
+| `GET /api/v1/furniture/project-capabilities` | `enabled`, `requires_auth`, `storage`, `reason` | Public; not an authorization credential |
+| `GET /api/v1/furniture/projects` | Paginated owner-scoped list (`limit`, `offset`) | Enabled local loopback mode or verified cloud account |
+| `POST /api/v1/furniture/projects` | Validated project inputs; new UUID | Same conditional access |
+| `GET /api/v1/furniture/projects/{id}` | Saved inputs / current completeness, compatibility warnings | Same conditional access |
+| `PATCH /api/v1/furniture/projects/{id}` | Allowed fields + `expected_revision`; same UUID | Same conditional access |
+| `POST /api/v1/furniture/projects/{id}/duplicate` | Copy inputs, new UUID, draft status | Same conditional access |
+| `DELETE /api/v1/furniture/projects/{id}` | Selected UUID + `expected_revision` query parameter | Same conditional access; frontend confirmation |
+
+Project persistence field names are intentionally different from an estimate request: `confirmed_configuration`, `manual_price_catalog`, `labor_cost` and `markup_percentage`. Reuse the existing mapping/validators rather than passing one DTO unchanged into the other endpoint. Contracts live in [schemas.py](../backend/src/forma/domains/furniture/schemas.py), [pricing.py](../backend/src/forma/domains/furniture/pricing.py) and [projects.py](../backend/src/forma/domains/furniture/projects.py). Cloud identity always comes from the verified user token; there is no client-writable owner field.
+
+The furniture frontend keeps interpretation, editable draft, confirmed configuration and pricing in a domain provider inside the generic image provider; root AuthProvider manages account sessions. Replacing an image clears image-dependent state while preserving upload lifecycle. `features/furniture/wardrobe-configuration.ts` centralizes validation. Unsaved workflows use in-memory state and refresh recovery. Saved projects instead reload configuration/pricing from the selected store without an image, check historical compatibility and recalculate. Account changes clear private draft state; first guest login preserves the unsaved workflow. The homepage's `RecentProjects` presentation is still static; actual persisted history is in the projects route.
 
 ### Wardrobe calculation boundary
 
@@ -48,11 +68,11 @@ The profile has full-height sides, top/bottom and shelves between the sides, one
 
 `hardware_rules.py` defines provisional hinge thresholds and HDF perimeter intervals. `hardware.py` consumes the same panels to estimate hinges, shelf supports, handles, top/bottom connectors, and back fasteners. Actual door panel height determines hinge count. HDF fasteners use `2 × (ceil(L / 150) + ceil(W / 150))` per back panel, counting each corner once. Their selection and positioning are preliminary.
 
-The existing calculation service composes geometry, area, edge banding, and hardware atomically in one Decimal context. It produces the existing response fields plus typed `edge_banding` and `hardware` sections. The frontend validates the complete response and its panel/edge associations before rendering, with expandable rule details. No geometry or estimation formulas are duplicated in the frontend.
+The existing calculation service composes manufacturing geometry, area, edge banding and hardware atomically in one Decimal context. It produces the existing response fields plus typed `edge_banding` and `hardware` sections. The frontend validates complete responses and panel/edge associations before rendering, with expandable rule details. React's schematic SVG layout calculations are presentation only; authoritative manufacturing quantity and cost formulas are not duplicated there.
 
 ## Future backend boundaries
 
-Introduce the following concrete packages as their first functionality is implemented.
+The following shared boundaries describe future cross-domain extraction. Current furniture project persistence and mock interpretation already live under the concrete furniture domain; do not create a parallel generic system until implemented reuse justifies it.
 
 | Proposed package | Responsibility |
 | --- | --- |
@@ -65,7 +85,7 @@ Introduce the following concrete packages as their first functionality is implem
 
 Domain packages own their calculation inputs, validation, results, and domain-specific export data. Shared services must accept explicit inputs without importing domain calculation rules. Projects will carry an explicit domain identifier, with domain-specific payloads validated by that domain. Export orchestration will receive validated results, while domain-specific output formatting remains with its domain when needed.
 
-Image interpretation will convert evidence into structured candidate inputs. Domain-specific schemas and interpretation instructions belong with their domain. Interpretation adapters validate those candidates before deterministic calculation. Python domain code owns quantities and totals. Exact schemas, persistence choices, API paths, and provider contracts will be defined with the implementing task.
+Future real image interpretation would convert evidence into structured candidate inputs, if separately authorized. Domain schemas/instructions remain domain-specific and candidates must be validated before deterministic calculation. Python owns quantities/totals. Current wardrobe API, price and persistence contracts are already implemented; new domains or shared extractions must define their own justified contracts without replacing those working paths.
 
 Use direct calls and explicit router composition as domains arrive. Introduce common abstractions only when implemented domains demonstrate a shared requirement.
 

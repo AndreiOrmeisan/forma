@@ -1,5 +1,7 @@
 # Future supplier pricing
 
+See the [documentation index](README.md), [wardrobe engine](wardrobe-engine.md) and [project persistence](project-persistence.md) for related context. This guide describes current manual pricing and future supplier preparation, not an active external pricing integration.
+
 Quantity calculation, price sourcing, and cost estimation are separate responsibilities. The furniture engine recalculates quantities from confirmed configuration; clients cannot submit authoritative material quantities. `pricing.py` defines stable item codes, validated price entries, a small `PriceProvider` protocol and the only implemented adapter, `ManualPriceProvider`. The cost engine reads normalized entries, not provider-specific payloads. The HTTP boundary currently accepts manual RON prices only.
 
 Future adapters may use official APIs or authorized product feeds only. No scraping, external pricing requests, scheduled synchronization, supplier database or functioning supplier integration exists now. Extend the validated source contract when implementing an actual adapter; never relabel supplier prices as manual.
@@ -16,4 +18,4 @@ All costs use Python Decimal (40-digit local context). Line totals round HALF_UP
 
 A missing price differs from explicit zero. Only positive-quantity items require a price. A zero-quantity line may have no price and contributes zero. Incomplete category subtotals and final totals are null; missing codes and warnings are returned. Known category subtotals cannot be presented as a complete selling price.
 
-Manual entries start empty. Prices and allowances live in existing temporary project context, survive normal navigation, and reset with a different image. Nothing is written to localStorage. Refresh loses project state and uses existing recovery. Estimates are generated explicitly; changed inputs hide the previous estimate until reapplied. Configuration changes remount request state while keeping manual inputs.
+Manual entries start empty. Unsaved prices/allowances live in temporary project context, survive normal workflow navigation and reset with a different image. The pricing flow does not save them in localStorage; mode preferences and the separate auth SDK session may use browser storage, but image blobs never do. Refresh loses an unsaved workflow and shows recovery. After a successful project save, configuration/catalog/allowances/labor/markup are persisted in the selected store and restored/recalculated by the saved editor. Estimates are generated explicitly after edits; changed inputs hide the previous estimate until reapplied. Configuration changes remount request state while keeping manual inputs.

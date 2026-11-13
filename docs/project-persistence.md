@@ -1,5 +1,7 @@
 # Project persistence
 
+For the complete laptop setup see [INIT](INIT.md); for actual service addresses and deployment variables see [services and deployment](services-and-deployment.md). Cloud setup status is owner-managed; source support is not a claim that it is active online.
+
 ## Online account mode
 
 Private online projects are now supported through Supabase Auth (Google OAuth) and PostgreSQL with row-level ownership policies. This is an explicitly configured alternative to local SQLite, not anonymous public access. See [free online setup](free-online-setup.md) for the Free-plan setup, SQL migration, OAuth dashboard settings, Render/GitHub variables and external verification steps. No cloud account/resource is provisioned automatically. Local projects are not automatically imported.
@@ -21,13 +23,14 @@ From `backend/`, after installing `.[dev]` in `.venv`:
 ```powershell
 $env:FORMA_ENV = "local"
 $env:ENABLE_LOCAL_PROJECTS = "true"
+$env:ENABLE_CLOUD_PROJECTS = "false"
 $env:DATABASE_URL = "sqlite:///./.local/forma.db"
 .\.venv\Scripts\python.exe -m uvicorn forma.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 The default file URL resolves relative to the backend process working directory. For an absolute Windows path use `sqlite:///C:/path/to/forma-data/forma.db`. Only file-based SQLite URLs are supported. The directory is created at startup. `.local/`, database files and journal/WAL companions are ignored by Git. No new Python dependency is required; SQLite uses the Python standard library. Environment files are templates; the commands above explicitly set process variables.
 
-Start `frontend/` with `npm run dev` and `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`. Use a local browser origin. The deployed GitHub Pages frontend continues to target the public backend, where project saving is disabled. To disable persistence locally, remove both local switches or set `FORMA_ENV=production` and restart the backend.
+Start `frontend/` with `npm run dev` and `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`. Use a local browser origin. GitHub Pages targets the public backend; online saving there is available only after its cloud mode, auth and RLS configuration/deployment are complete. Otherwise it remains disabled. To disable local SQLite, remove its switches or set `FORMA_ENV=production` and restart the backend; cloud mode has its own explicit switch.
 
 ## Lifecycle and API
 
@@ -52,7 +55,7 @@ Project JSON has independent `schema_version=1`, `construction_profile_id=forma-
 
 ## Transactions, backups and future production
 
-Each operation uses its own SQLite connection and explicit transaction, parameterized SQL, a five-second busy timeout and rollback on failure. Optimistic revisions prevent lost updates across sessions. Single-process/local usage is intended, not public multi-tenant scaling. There is no automatic backup or schema downgrade.
+Each local SQLite operation uses its own connection and explicit transaction, parameterized SQL, a five-second busy timeout and rollback on failure. Optimistic revisions prevent lost updates across sessions. This store is intended for local usage, not public multi-tenant scaling. Cloud mode instead uses user-scoped PostgREST requests, PostgreSQL row writes and conditional revision filters. Neither mode implements automatic backup or schema downgrade.
 
 Stop the local backend before copying the database file to a secure backup location. Alternatively use Python's SQLite backup API for a consistent live backup; copying an active database file without its journal is unsafe. Test restoring a copy before relying on a backup. Keep backups outside Git and protect them as project data.
 

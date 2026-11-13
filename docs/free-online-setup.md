@@ -1,5 +1,7 @@
 # Free online accounts and private projects
 
+Read the [documentation index](README.md), [INIT](INIT.md) and [service directory](services-and-deployment.md) for the wider project context. This is an activation guide; the owner's actual Supabase project URL/ref and completed setup must be confirmed, not inferred from source files.
+
 The app supports Supabase Auth (Google OAuth) and PostgreSQL on the Supabase **Free** plan. GitHub Pages still hosts the frontend and the existing Render backend still calculates quantities/costs. No billing API, paid subscription, paid AI, email-sending service or automatic upgrade is implemented.
 
 At the time of implementation (2026-11-13), Supabase Free advertises $0/month, a 500 MB database, 50,000 monthly active users and 5 GB egress. It can pause after a week of inactivity and does not include automatic database backups. These are provider limits, not an unlimited/free-forever guarantee. Stay on Free, do not enable paid add-ons, and check [official pricing](https://supabase.com/pricing) before creating resources. If limits are reached, review usage rather than purchasing an upgrade automatically.
@@ -69,4 +71,4 @@ Only configuration/pricing inputs are saved. Images stay temporary. The official
 
 Switching accounts clears the previous user's displayed project/draft state. Unsaved guest work is preserved during the first login. Logging out or switching accounts during editing can discard unsaved work; save first. A blocked popup gives an actionable error instead of redirecting away and losing the uploaded image.
 
-Existing local SQLite projects are not automatically uploaded into an account. Cloud mode takes precedence over local mode when enabled. Missing configuration leaves cloud CRUD disabled; invalid or secret-key configuration fails startup rather than exposing unauthenticated storage. Provider failures never fall back to a shared public SQLite database. Free-plan pausing, provider quotas, and existing Render cold starts may temporarily affect availability. Keep independent backups/exported data; automatic backups and image cloud storage are outside this change.
+Existing local SQLite projects are not automatically uploaded into an account. Cloud mode takes precedence over local mode when enabled. If cloud is not enabled, its CRUD mode remains disabled. Explicitly enabling it without valid required settings, or supplying a secret key, fails startup rather than exposing unauthenticated storage. Provider failures never fall back to a shared public SQLite database. Free-plan pausing, provider quotas, and existing Render cold starts may temporarily affect availability. Keep independent backups/exported data; automatic backups and image cloud storage are outside this change.

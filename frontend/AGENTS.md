@@ -1,3 +1,5 @@
+Before frontend work, read the repository's [documentation index](../docs/README.md), [INIT](../docs/INIT.md) and [agent handoff](../docs/agent-handoff.md), together with root [AGENTS.md](../AGENTS.md). Keep the generated Next.js instructions below intact.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know

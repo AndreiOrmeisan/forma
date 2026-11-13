@@ -1,10 +1,14 @@
 # FORMA engineering conventions
 
+## Read first
+
+Before changing code, read [docs/README.md](docs/README.md), [docs/agent-handoff.md](docs/agent-handoff.md), [docs/INIT.md](docs/INIT.md) and [docs/services-and-deployment.md](docs/services-and-deployment.md). These are the central onboarding/context pack. Follow the user's latest instructions over an older handoff snapshot. Do not mistake implemented cloud support for completed account setup or deployed code. Keep onboarding and feature documentation together in `docs/`.
+
 ## Scope
 
 FORMA is a multi-domain estimation platform. Furniture is the first implemented domain. Shared platform functionality must remain domain-agnostic, while calculation rules and domain-specific validation must remain isolated.
 
-The current POC is exclusively focused on furniture and particleboard (PAL) wardrobes. Furniture has sketch upload, deterministic mock review, editable configuration, an SVG preview, and a deterministic panel cutting list with separate net PAL/HDF areas.
+The current POC is exclusively focused on furniture and particleboard (PAL) wardrobes. Furniture has temporary sketch upload, deterministic mock review, editable configuration, SVG preview, cutting/material/ABS/hardware calculations, manual pricing and project persistence. Private cloud account support is implemented but requires owner-managed external setup and live verification.
 
 ## Architecture
 
@@ -14,7 +18,7 @@ The current POC is exclusively focused on furniture and particleboard (PAL) ward
 - `/` is the platform domain selector. Furniture routes live under `/domenii/mobilier`, with `/proiect-nou` and `/proiecte` children.
 - `frontend/src/config/domains.ts` is the single source for domain definitions, availability, and furniture routes. Unavailable domains have null routes and static cards.
 - The furniture layout owns its shared header and navigation. Preserve the existing Minimal Premium tokens, components, and `forma-mode` localStorage preference.
-- HTTP endpoints use the `/api` prefix. Furniture exposes the multipart `POST /api/v1/furniture/analyze-sketch` mock and JSON `POST /api/v1/furniture/calculate`. Health remains `GET /api/health`.
+- HTTP endpoints use the `/api` prefix. Public furniture endpoints include mock `analyze-sketch`, `calculate`, `estimate` and read-only `project-capabilities` under `/api/v1/furniture`. Health remains `GET /api/health`. Project CRUD routes are mounted only in an explicitly enabled storage mode; cloud mode verifies bearer identity and ownership on every operation.
 - Backend input validation is centralized in `domains/furniture/schemas.py`, shared by mock interpretation and panel calculation. Keep the frontend POC ranges aligned with this schema.
 - Calculation requires `{ configuration, confirmed: true }`, uses the fixed FORMA POC v1 profile, and is independent of the image and mock provider. Use Decimal arithmetic and JSON decimal strings. Panel `area_m2` includes quantity, `unit_area_m2` describes one piece, and HDF totals remain separate from PAL.
 - Extend the same calculation with `edge_banding` and `hardware`, derived from its existing panels. Each PAL panel has four explicit `edges`; HDF uses null. Length-axis end edges measure `width_mm`, width-axis end edges measure `length_mm`, and `width_start` is the front of carcass/shelf panels. Keep cutting dimensions separate from net banding lengths and the zero procurement allowance.
@@ -42,12 +46,13 @@ The current POC is exclusively focused on furniture and particleboard (PAL) ward
 - Never commit secrets, virtual environments, generated builds, or dependency directories.
 - Do not introduce product UI, AI integrations, furniture calculations, databases, authentication, Docker, or external services without a task requesting them.
 - Preserve existing behavior and run relevant checks before completing changes.
+- Do not push or publish/deploy without explicit user permission. Keep feature/setup docs in `docs/` current with implementation and deployment changes; never record secrets or assert unverified live service state.
 
 ## Validation
 
 From `frontend/`, run `npm run lint`, `npm run typecheck`, and `npm run build`.
-Run `npm test` for wardrobe configuration rules. Verify upload, mock review, field validation, confirmation, result recovery, and image replacement.
+Run `npm test` for configuration, SVG, pricing, project and auth behavior. Verify upload, mock review, field validation, confirmation, result recovery, image replacement and project lifecycle as relevant. Run frontend type generation and build sequentially because both write generated `.next` files.
 From `backend/`, after installing `.[dev]` in a virtual environment, run `python -m pytest`.
-Verify the dashboard, furniture homepage, new-project placeholder, projects route, and legacy redirect. Check active navigation, mode persistence, and that upcoming domain cards have no links or buttons and their paths return 404.
+Verify the dashboard, furniture homepage, upload/review/result, project history/editor, profile and legacy redirect. Check active navigation, mode persistence and unavailable domain paths. Cloud mock tests are not evidence that live SQL RLS, Google OAuth or multi-device access has been configured; test those explicitly before claiming verification.
 Start the backend and verify `GET http://localhost:8000/api/health` returns `{"status":"ok"}`.
-See the root README for Windows commands.
+See `docs/INIT.md` for full Windows/macOS/Linux setup and `docs/troubleshooting.md` for known issues. Read `frontend/AGENTS.md` and the relevant locally installed Next.js guide before framework-specific frontend work.
