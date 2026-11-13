@@ -3,6 +3,7 @@ import { HeroSection } from "@/components/hero-section";
 import { ModeSwitcher } from "@/components/mode-switcher";
 import { NewProjectCard } from "@/components/new-project-card";
 import { RecentProjects } from "@/components/recent-projects";
+import { FurnitureCatalogCard } from "@/components/furniture-catalog-card";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
           <div className="creation-column">
             <ModeSwitcher />
             <NewProjectCard />
+            <FurnitureCatalogCard />
             <FurnitureCategories />
           </div>
           <RecentProjects />

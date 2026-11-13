@@ -2,7 +2,9 @@
 
 ## Current scope and access
 
-Open **Furnizori și prețuri** from either the domain dashboard or furniture header, at `/setari/furnizori` (GitHub Pages adds the existing `/forma` base path). The catalog starts empty. All prices are entered by the user; there are no market/demo prices, supplier requests, scraping, AI calls or synchronization jobs.
+First enter **Mobilier & Tâmplărie**, then open the prominent **Furnizori și prețuri** card or highlighted furniture header button, at `/domenii/mobilier/furnizori` (GitHub Pages adds the existing `/forma` base path). There is no global catalog link on the domain-selection dashboard. Old `/setari/furnizori` bookmarks redirect to furniture, including static GitHub Pages builds. The catalog starts empty. All prices are entered by the user; there are no market/demo prices, supplier requests, scraping, AI calls or synchronization jobs.
+
+Suppliers and offers belong to their domain. Future customer management must follow the same domain-local routing/ownership principle, rather than a shared global list. There is no customer-management feature yet. Domain storage isolation alone does not implement another domain's item schemas, pricing rules or calculators.
 
 No additional installation, environment variable, account, database or paid service is required. Keep `NEXT_PUBLIC_PROJECT_STORAGE=browser` and backend persistence flags disabled for the deployed POC. The catalog stays browser-local even if project API mode is selected later; switching project stores does not move it.
 
@@ -16,7 +18,7 @@ Suppliers have UUIDs, a required name, optional website/contact/notes and UTC cr
 
 Offers have independent UUIDs, supplier references, optional product metadata, manual source, active state and explicit preferred state. Several suppliers may offer the same code. At most one active preferred offer exists per code; selecting a new default explicitly clears the prior preference. Inactive offers cannot be preferred. No cheapest/latest/first-offer fallback exists, even with only one unpreferred active offer.
 
-`CatalogRepository` is the typed persistence boundary; `localCatalogRepository` is the only adapter. `PriceSource` is a small resolution interface; `ManualCatalogPriceSource` is the only implementation. Do not add placeholder adapters or generic plugin loading.
+`CatalogRepository` is the typed persistence boundary; `createLocalCatalogRepository(domainId)` isolates browser keys, write locks and revisions by domain. `localCatalogRepository` is explicitly the furniture instance. Existing item validation and `ManualCatalogPriceSource` support furniture only; future domains must supply their own item definitions/validation and pricing sources before being enabled. Do not add placeholder adapters or generic plugin loading.
 
 ## Units and price precision
 
@@ -38,7 +40,7 @@ The existing backend `PriceEntry` remains a manual user-input contract, with sup
 
 ## Storage migration and safety
 
-- Catalog: `forma:supplier-catalog:v1`, `{schema_version:1, revision, suppliers, items}`.
+- Furniture catalog: `forma:supplier-catalog:furniture:v1`, `{schema_version:1, revision, suppliers, items}`. Other domain IDs get independent keys/revisions. The old `forma:supplier-catalog:v1` catalog is furniture-only legacy data: read it only when the furniture key is absent. Opening does not rewrite/delete it; the next explicit furniture edit writes the scoped copy. Existing scoped data, including an empty catalog, always wins. A corrupt scoped catalog raises an error instead of falling back. No other domain reads the legacy key.
 - Projects retain their stable `forma:wardrobe-project:v1:<UUID>` keys. Readers accept envelope storage versions 1 and 2; new writes use version 2. The domain/calculation schema stays version 1 because geometry rules have not changed.
 - Legacy prices without snapshots are synthesized in memory as manual overrides, preserving their exact rates and original price timestamps. Opening/listing does not rewrite storage. A normal explicit save persists the additive metadata in envelope v2.
 - Unknown/corrupt data is preserved and reported, never cleared/reset. Unrelated storage keys and mode/session preferences are untouched. Snapshots must match persisted price values; duplicate codes, malformed prices and incompatible units are rejected.
@@ -46,7 +48,7 @@ The existing backend `PriceEntry` remains a manual user-input contract, with sup
 
 ## Manual backup
 
-Export downloads a versioned `forma-supplier-catalog` JSON containing suppliers/offers only, with an export timestamp. Import is limited to 2 MB, 500 suppliers and 3,000 offers. Strict shape/version/IDs/references/units/prices/URLs/preferences are checked before any write; unknown fields such as images are rejected.
+Export downloads `forma-mobilier-catalog.json`, a versioned `forma-supplier-catalog` JSON containing suppliers/offers only, with an export timestamp and `domain_id: furniture`. Cross-domain imports are rejected. Previous backups without a domain are accepted only as furniture backups. Import is limited to 2 MB, 500 suppliers and 3,000 offers. Strict shape/version/IDs/references/units/prices/URLs/preferences are checked before any write; unknown fields such as images are rejected.
 
 The user previews counts and warnings and confirms one mode:
 
@@ -63,6 +65,6 @@ An authenticated backend repository will require identity, ownership checks and 
 
 Automated coverage is in `frontend/tests/supplier-catalog.test.mjs`, existing browser/project/pricing suites and `backend/tests/test_projects.py`. It exercises CRUD, explicit defaults, sheet normalization, import conflicts, malformed/quota/stale storage, legacy migration, snapshots/overrides and confirmed refresh ordering. Run the existing commands in [INIT](INIT.md), including backend regressions. No dependency was added.
 
-Sprint 11 local validation: ESLint passed without warnings, TypeScript passed, all 77 frontend tests and 165 backend tests passed, and both standard production and `GITHUB_PAGES=true` static-export builds passed. Existing Node module-type and Starlette/httpx deprecation warnings remain in test output. These checks do not establish live deployment status.
+Post-Sprint-11 domain-organization validation: ESLint passed without warnings, TypeScript passed, all 80 frontend tests passed (including domain storage isolation, non-destructive legacy migration, domain-bound backups and visible furniture-only navigation). The earlier Sprint 11 backend regression suite passed all 165 tests; this adjustment does not change backend code. Both standard production and `GITHUB_PAGES=true` static-export builds are checked before handoff. Existing Node module-type and Starlette/httpx deprecation warnings remain in test output. These checks do not establish live deployment status.
 
 Visual review is still required at 360/390/430 px and desktop: inspect empty catalog, add/edit forms, filters, equivalent sheet label, delete dialog, backup preview and project price-refresh preview. During Sprint 11, Chrome was discovered but Computer Use access was not approved; no rendered screenshot/mobile visual verification is claimed.

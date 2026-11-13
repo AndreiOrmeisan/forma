@@ -1,0 +1,10 @@
+.card { display:flex; align-items:center; gap:16px; padding:24px; background:#efe3d7; border:1px solid #dfcbb8; border-radius:22px; color:#22201e; text-decoration:none; }
+.card:hover { background:#ead9c9; }
+.card:focus-visible { outline:3px solid #71533b; outline-offset:4px; }
+.icon { display:grid; place-items:center; flex-shrink:0; width:48px; height:48px; border-radius:15px; background:#f8f3ed; }
+.copy { display:grid; gap:7px; min-width:0; }
+.label { color:#6c5847; font-size:10px; font-weight:650; letter-spacing:.1em; }
+.title { font-size:21px; font-weight:600; letter-spacing:-.6px; }
+.description { color:#62564b; font-size:13px; line-height:1.6; }
+.arrow { flex-shrink:0; margin-left:auto; }
+@media(max-width:430px) { .card { gap:12px; padding:20px; align-items:flex-start; }.icon { width:40px; height:40px; }.title { font-size:19px; }.arrow { width:18px; } }

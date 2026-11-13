@@ -1,4 +1,5 @@
 import { priceItems, pricingError } from "../furniture/wardrobe-pricing";
+import { furnitureRoutes } from "../../config/domains";
 
 export type ItemCode = typeof priceItems[number][0];
 export type CalculationUnit = typeof priceItems[number][2];
@@ -8,7 +9,7 @@ export const catalogDefinitions = priceItems.map(([code,name,unit])=>({code,name
   category:(code === "pal_18" ? "PAL" : code === "hdf_3" ? "HDF" : code.startsWith("abs_") ? "ABS" : code) as Category,
   thickness:code === "pal_18" ? 18 : code === "hdf_3" ? 3 : code === "abs_2" ? 2 : code === "abs_0_4" ? 0.4 : null,
 }));
-export const catalogRoute = "/setari/furnizori";
+export const catalogRoute = furnitureRoutes.suppliers;
 export const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isObject=(v:unknown):v is Record<string,unknown>=>!!v && typeof v === "object" && !Array.isArray(v);
 export const onlyKeys=(v:unknown,keys:string[])=>isObject(v) && Object.keys(v).every(key=>keys.includes(key));

@@ -169,3 +169,38 @@ test("snapshot comparison accepts equivalent backend decimal and UTC serializati
   const original=snapshots.manualSnapshot("pal_18","50",undefined,date);
   assert.equal(snapshots.snapshotFingerprint([original]),snapshots.snapshotFingerprint([{...original,unit_price_ron:"50.000000",applied_at:"2026-11-13T10:00:00Z"}]));
 });
+
+test("legacy global catalog is assigned only to furniture without deleting or rewriting it",async context=>{
+  const rows=environment(context);let state=await repo.localCatalogRepository.saveSupplier(supplier("Existing furniture supplier"),null,0);
+  state=await createOffer(state,{supplier_id:state.suppliers[0].id,is_preferred:true});
+  const legacy=rows.get(repo.catalogStorageKey);rows.set(repo.legacyCatalogStorageKey,legacy);rows.delete(repo.catalogStorageKey);
+  assert.deepEqual(await repo.localCatalogRepository.load(),state);assert.equal(rows.has(repo.catalogStorageKey),false);
+  const electrical=repo.createLocalCatalogRepository("electrical");assert.equal((await electrical.load()).suppliers.length,0);
+  state=await repo.localCatalogRepository.saveSupplier(supplier("Updated furniture supplier"),state.suppliers[0].id,state.revision);
+  assert.equal(rows.get(repo.legacyCatalogStorageKey),legacy);assert.equal(JSON.parse(rows.get(repo.catalogStorageKey)).suppliers[0].name,"Updated furniture supplier");
+  assert.equal(state.items.length,1);assert.equal(state.items[0].is_preferred,true);
+  // A scoped empty catalog is intentional: never revive older global data.
+  rows.set(repo.catalogStorageKey,JSON.stringify(model.emptyCatalog()));assert.equal((await repo.localCatalogRepository.load()).suppliers.length,0);
+});
+
+test("domain storage writes and revisions are isolated and backups cannot cross domains",async context=>{
+  const rows=environment(context);const furniture=repo.localCatalogRepository,electrical=repo.createLocalCatalogRepository("electrical");
+  const state=await furniture.saveSupplier(supplier("Furniture only"),null,0),original=rows.get(repo.catalogStorageKey);
+  let other=await electrical.saveSupplier(supplier("Electrical only"),null,0);
+  assert.notEqual(repo.catalogStorageKey,repo.catalogStorageKeyFor("electrical"));assert.equal((await furniture.load()).suppliers[0].name,"Furniture only");assert.equal(other.suppliers[0].name,"Electrical only");
+  const backup=repo.exportCatalog(state);assert.equal(backup.domain_id,"furniture");
+  await assert.rejects(electrical.importBackup(backup,"replace",other.revision),/altui domeniu/);
+  other=await electrical.deleteSupplier(other.suppliers[0].id,other.revision);assert.equal(other.suppliers.length,0);assert.equal(rows.get(repo.catalogStorageKey),original);
+  const legacyBackup={...backup};delete legacyBackup.domain_id;
+  assert.equal(repo.parseCatalogBackup(JSON.stringify(legacyBackup)).domain_id,"furniture");assert.throws(()=>repo.parseCatalogBackup(JSON.stringify(legacyBackup),"electrical"),/altui domeniu/);
+  assert.throws(()=>repo.catalogStorageKeyFor("../furniture"));
+});
+
+test("supplier access is visible within furniture and absent from the domain dashboard header",()=>{
+  const domains=load("src/config/domains.ts");
+  const {AppHeader}=load("src/components/app-header.tsx",{"@/config/domains":domains});
+  const platform=renderToStaticMarkup(React.createElement(AppHeader));assert.ok(!platform.includes("Furnizori și prețuri"));
+  const furniture=renderToStaticMarkup(React.createElement(AppHeader,{showDomainLink:true}));assert.match(furniture,/catalog-header-link/);assert.ok(furniture.includes(`href="${domains.furnitureRoutes.suppliers}"`));
+  const {FurnitureCatalogCard}=load("src/components/furniture-catalog-card.tsx",{"@/config/domains":domains});
+  const card=renderToStaticMarkup(React.createElement(FurnitureCatalogCard));assert.match(card,/Furnizori și prețuri/);assert.match(card,/SPAȚIUL TĂU DE MOBILIER/);assert.ok(card.includes(`href="${domains.furnitureRoutes.suppliers}"`));
+});

@@ -29,6 +29,7 @@ export const furnitureRoutes = {
   reviewProject: `${furnitureDomain.route}/proiect-nou/verificare`,
   resultProject: `${furnitureDomain.route}/proiect-nou/rezultat`,
   projects: `${furnitureDomain.route}/proiecte`,
+  suppliers: `${furnitureDomain.route}/furnizori`,
 } as const;
 
 export const domains: readonly Domain[] = [

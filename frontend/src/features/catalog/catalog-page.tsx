@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { furnitureRoutes } from "../../config/domains";
 import { useEffect, useState } from "react";
 import { categories, normalizedPrice, type CatalogItem, type CatalogState, type Supplier } from "./catalog-model";
 import { itemInput, localCatalogRepository } from "./catalog-repository";
@@ -20,8 +21,8 @@ export function CatalogPage(){
   const suppliers=catalog?.suppliers || [];
   const items=(catalog?.items || []).filter(item=>(category==="all" || item.category===category) && (active==="all" || item.is_active===(active==="active")) && [item.name,item.item_code,item.supplier_sku,suppliers.find(s=>s.id===item.supplier_id)?.name].join(" ").toLocaleLowerCase("ro").includes(search.toLocaleLowerCase("ro")));
   return <main id="main-content" className={styles.page}>
-    <Link href="/" className={styles.link}>← Domenii</Link><div className={styles.heading}><div><h1>Furnizori și prețuri</h1><p>Ofertele tale, pregătite pentru următorul proiect.</p></div><button className={styles.secondary} disabled={busy} onClick={()=>void load()}>Reîncarcă lista</button></div>
-    <div className={styles.notice}>Catalog personal, salvat doar în acest browser. Nu este sincronizat între dispozitive și se poate pierde la ștergerea datelor site-ului. Fără prețuri de piață sau acces automat la furnizori.</div>
+    <Link href={furnitureRoutes.home} className={styles.link}>← Mobilier &amp; Tâmplărie</Link><div className={styles.heading}><div><p className={styles.domainLabel}>MOBILIER &amp; TÂMPLĂRIE</p><h1>Furnizori și prețuri</h1><p>Furnizorii și ofertele tale pentru proiectele de mobilier.</p></div><button className={styles.secondary} disabled={busy} onClick={()=>void load()}>Reîncarcă lista</button></div>
+    <div className={styles.notice}>Catalog dedicat domeniului Mobilier, salvat doar în acest browser. Nu este sincronizat între dispozitive și se poate pierde la ștergerea datelor site-ului. Fără prețuri de piață sau acces automat la furnizori.</div>
     {error && <p className={styles.error} role="alert">{error}</p>}
     {success && <p role="status">{success}</p>}
     {!catalog ? <p role="status">{error ? "Datele existente nu au fost înlocuite.":"Încărcăm catalogul…"}</p>:<>

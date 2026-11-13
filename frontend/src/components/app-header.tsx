@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowLeft, UserRound } from "lucide-react";
+import { ArrowLeft, Store, UserRound } from "lucide-react";
+import { furnitureRoutes } from "@/config/domains";
 
 export function AppHeader({ showDomainLink = false }: { showDomainLink?: boolean }) {
   return (
@@ -13,7 +14,7 @@ export function AppHeader({ showDomainLink = false }: { showDomainLink?: boolean
           </Link>
         )}
       </div>
-      <Link href="/setari/furnizori" className="domain-back-link catalog-header-link">Furnizori și prețuri</Link>
+      {showDomainLink && <Link href={furnitureRoutes.suppliers} className="catalog-header-link"><Store size={16} aria-hidden="true" /><span>Furnizori și prețuri</span></Link>}
       <div className="avatar" role="img" aria-label="Avatar utilizator">
         <UserRound size={20} strokeWidth={1.5} aria-hidden="true" />
       </div>

@@ -4,7 +4,7 @@ Last source audit: 2026-11-13. These are the recorded project addresses and conf
 
 ## Service directory
 
-Sprint 11 adds a browser-local supplier catalog at `/setari/furnizori` (published under the existing `/forma` base). It needs no additional hosting, backend supplier endpoints, secrets or database activation. JSON export/import is a manual catalog backup; it is not cloud synchronization. See [supplier catalog](supplier-catalog.md).
+Sprint 11 adds a browser-local supplier catalog at `/domenii/mobilier/furnizori` (published under the existing `/forma` base). It needs no additional hosting, backend supplier endpoints, secrets or database activation. JSON export/import is a manual catalog backup; it is not cloud synchronization. See [supplier catalog](supplier-catalog.md).
 
 **Current POC:** `NEXT_PUBLIC_PROJECT_STORAGE=browser` is the default and saves projects on the visitor's browser/device, including GitHub Pages. No database/account configuration is needed. The owner deferred Supabase setup; retained backend stores require an explicit later `api` selection. Calculations still use FastAPI. See [browser saving](browser-projects.md).
 

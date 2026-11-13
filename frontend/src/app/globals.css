@@ -394,11 +394,15 @@ h2 {
   gap: 24px;
 }
 
-.catalog-header-link { max-width: 105px; line-height: 1.5; }
-@media (max-width: 430px) {
+.catalog-header-link { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:10px 14px; border:1px solid #decebe; border-radius:12px; background:#ead9c9; font-size:12px; font-weight:600; line-height:1.5; }
+.catalog-header-link svg { flex-shrink:0; }
+.catalog-header-link:hover { background:#e1cbb7; }
+@media (max-width: 600px) {
   .app-header { gap: 10px; }
   .header-brand { gap: 12px; }
-  .catalog-header-link { max-width: 90px; font-size: 11px; }
+  .app-header:has(.catalog-header-link) { display:grid; grid-template-columns:1fr 40px; height:auto; padding:20px 0; gap:12px; }
+  .catalog-header-link { grid-column:1 / -1; grid-row:2; padding:10px 14px; font-size:12px; }
+  .app-header:has(.catalog-header-link) .avatar { grid-column:2; grid-row:1; }
 }
 
 .domain-back-link, .projects-link {

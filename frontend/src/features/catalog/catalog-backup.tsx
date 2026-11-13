@@ -10,7 +10,7 @@ export function CatalogBackupPanel({catalog,onChange}:{catalog:CatalogState;onCh
   const plan=backup ? previewImport(catalog,backup,mode):null;
   function download(){
     const url=URL.createObjectURL(new Blob([JSON.stringify(exportCatalog(catalog),null,2)],{type:"application/json"}));
-    const anchor=document.createElement("a");anchor.href=url;anchor.download="forma-catalog.json";anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    const anchor=document.createElement("a");anchor.href=url;anchor.download="forma-mobilier-catalog.json";anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   async function select(file:File|undefined){
     setBackup(null);setMessage("");if(!file)return;
@@ -23,7 +23,7 @@ export function CatalogBackupPanel({catalog,onChange}:{catalog:CatalogState;onCh
     catch(error){setMessage(error instanceof Error ? error.message:"Importul nu a reușit.");}finally{setBusy(false);}
   }
   return <section className={styles.backup} aria-label="Backup catalog"><h2>O copie pentru siguranță</h2>
-    <p>Exportă furnizorii și ofertele într-un fișier JSON. Backup manual, fără fotografii sau proiecte și fără sincronizare între dispozitive.</p>
+    <p>Exportă furnizorii și ofertele de mobilier într-un fișier JSON. Backup manual pentru acest domeniu, fără fotografii sau proiecte și fără sincronizare între dispozitive.</p>
     <button className={styles.secondary} onClick={download}>Exportă catalogul</button>
     <label className={styles.field}>Importă un backup JSON · max. 2 MB<input type="file" accept="application/json,.json" disabled={busy} onChange={event=>void select(event.target.files?.[0])}/></label>
     {plan && <div className={styles.preview}><h3>Verifică importul</h3>
