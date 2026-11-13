@@ -1,5 +1,7 @@
 # Local backup and recovery
 
+Sprint 14C extends full export to `forma-backup` v2, adds `manufacturing_profiles` and project envelope v3 snapshots, and retains v1/catalog-only import. Manufacturing is a separately selectable furniture-owned section. V1 files cannot introduce manufacturing data. Journal v2 adds the manufacturing key/lock; supported v1 journals still recover. No automatic migration. See [manufacturing profiles](manufacturing-profiles.md).
+
 Sprint 14B adds `/setari/backup-si-restaurare`, linked from the furniture profile and always accessible from catalog/company settings, even when their normal repository load fails. No account, network service, paid dependency or database flag is required. This feature operates on **browser-local** data even if another installation selects API project storage; it does not export SQLite/Supabase/server projects.
 
 ## File format and included data
@@ -9,18 +11,19 @@ UTF-8 JSON, safe filename `FORMA_Backup_YYYY-MM-DD.json` (UTC filename date):
 ```json
 {
   "format": "forma-backup",
-  "schema_version": 1,
+  "schema_version": 2,
   "created_at": "2026-11-13T12:00:00.000Z",
   "application": "FORMA",
   "sections": {
     "projects": [],
     "catalogs": [],
-    "company_profile": null
+    "company_profile": null,
+    "manufacturing_profiles": {"schema_version": 1, "domain_id": "furniture", "revision": 0, "profiles": []}
   }
 }
 ```
 
-Full exports contain all three sections. Partial backups may contain one or more sections; omitted sections cannot be selected. Empty arrays/null are valid. `projects` contains existing `{storage_version:1|2, project:...}` browser envelopes, preserving IDs, names, configuration, manual catalog, snapshots (including supplier references), allowances, labor, markup, historical timestamps and construction/calculation/schema metadata. Derived compatibility/warnings/totals are not stored or invented. V1 records remain V1 on backup/restore; the existing reader may derive manual snapshots in memory. No backend recalculation or current supplier price refresh happens during restore.
+Full exports contain all four sections. Partial backups may contain one or more; omitted sections cannot be selected. Empty arrays/null are valid. `projects` contains existing `{storage_version:1|2|3, project:...}` envelopes, preserving IDs, configuration, prices, supplier snapshots, optional manufacturing snapshots, historical timestamps and construction/calculation/schema metadata. Derived totals are not stored or invented. Legacy envelopes are not rewritten on open/backup; the existing reader may derive manual price snapshots in memory. No backend recalculation or current price/process refresh happens during restore. `manufacturing_profiles` holds the validated domain-bound profile store; merge skips conflicting IDs and explicit replacement rebases live profile revisions without changing applied project snapshots.
 
 Each `catalogs` entry is `{domain_id:"furniture", catalog:{schema_version:1, revision, suppliers, items}}`. Furniture is the only currently implemented domain. Unknown domains are rejected, not mapped into furniture; unrelated domain keys remain untouched. A valid active legacy furniture catalog can be exported without creating/deleting its source key. `company_profile` is null or the existing validated profile: contact/registration details, quotation notes/validity and an optional bounded PNG/JPEG data URL logo. Existing logo constraints remain 128 KiB, 2048 × 2048 pixels and signature/format validation. Import reuses the stored-logo validator; it does not add an independent image decoder.
 
@@ -50,7 +53,7 @@ Close other FORMA tabs before replacement/recovery and reopen editors afterward.
 
 Implementation: `features/storage/forma-backup.ts` orchestrates existing validators; `restore-transaction.ts` is a bounded repository write coordinator, not a second project/catalog store. Normal project/catalog/company access checks the pending journal. The coordinator takes the existing project and furniture catalog Web Locks in a fixed order where available. Existing single-record revision guards remain in place. Company writes remain synchronous and journal-aware.
 
-Before changing data, the coordinator verifies expected raw values and writes `forma:restore-journal:v1` containing each allowlisted key/section and its exact `before`/`after` values. Successfully storing this artifact is the practical staging/capacity check: a staging quota/access failure performs no data writes. Additional quota can still be needed for subsequent writes. The journal may contain up to 20003 operations and is byte-bounded at 128 MiB; browser quota usually limits it much earlier. Keys outside owned project/furniture-catalog/company namespaces cannot be restored or rolled back.
+Before changing data, the coordinator verifies expected raw values and writes `forma:restore-journal:v1` containing each allowlisted key/section and exact `before`/`after` values (journal schema v2 when manufacturing profiles are touched, otherwise v1). Successfully storing it is the practical staging/capacity check: staging failure performs no data writes. Additional quota may still be needed. The journal is bounded at 20004 operations / 128 MiB; browser quota usually limits it earlier. Only owned project/furniture-catalog/company/manufacturing namespaces can be restored or rolled back.
 
 Each localStorage operation is atomic for one key; **the entire restore is not a database transaction**. During a normal in-page failure, reverse rollback restores exact prior values and removes imported new keys. On interruption/crash, the journal remains; normal repository access is blocked until explicit recovery. Other browser contexts, old application versions and browsers without Web Locks do not provide serializable isolation. Raw baseline comparisons detect observed changes; they are not an atomic cross-tab compare-and-swap. Readers/writers from old code may ignore the journal. Browser/process/storage loss can destroy both data and journal; download a backup first.
 

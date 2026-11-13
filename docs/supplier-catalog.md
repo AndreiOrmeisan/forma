@@ -12,6 +12,8 @@ Browser data is origin/profile/device-specific and visible to anyone sharing tha
 
 ## Models and ownership
 
+Sprint 14C adds optional supplier `status:active|archived` and reversible archive controls for manufacturing associations. Missing status preserves legacy active behavior without rewriting data. Archive does not change offers or active/preferred price resolution; historical price snapshots stay frozen. Multiple local [manufacturing profiles](manufacturing-profiles.md) can reference a supplier or remain standalone. Deleted/archived supplier references are retained with warnings instead of reassignment. Profiles/settings remain distinct from commercial prices and have their own versioned store/backup section.
+
 `frontend/src/features/catalog/catalog-model.ts` defines suppliers and offers. Stable item codes and calculation units derive from the existing `wardrobe-pricing.ts` list: `pal_18`, `hdf_3`, `abs_2`, `abs_0_4`, `hinges`, `shelf_supports`, `handles`, `cabinet_connectors`, `hdf_fasteners`. Names do not participate in price matching. Material/thickness metadata must remain compatible with the fixed current construction profile.
 
 Suppliers have UUIDs, a required name, optional website/contact/notes and UTC creation/update timestamps. Links accept HTTP(S), reject embedded credentials and are never fetched by the app. Deletion needs confirmation and is blocked while any offer references the supplier, including inactive offers.

@@ -15,6 +15,7 @@ export interface CatalogRepository {
   load():Promise<CatalogState>;
   saveSupplier(input:SupplierInput,id:string|null,revision:number):Promise<CatalogState>;
   deleteSupplier(id:string,revision:number):Promise<CatalogState>;
+  setSupplierStatus(id:string,status:"active"|"archived",revision:number):Promise<CatalogState>;
   saveItem(input:CatalogItemInput,id:string|null,revision:number):Promise<CatalogState>;
   deleteItem(id:string,revision:number):Promise<CatalogState>;
   importBackup(backup:CatalogBackup,mode:ImportMode,revision:number):Promise<CatalogState>;
@@ -94,6 +95,10 @@ export function createLocalCatalogRepository(domainId:string):CatalogRepository 
   const mutate=(revision:number,apply:(state:CatalogState)=>CatalogState)=>change(domainId,revision,apply);
   return {
   async load(){return read(domainId);},
+  setSupplierStatus(id,status,revision){return mutate(revision,state=>{
+    if(!["active","archived"].includes(status) || !state.suppliers.some(s=>s.id===id))throw new CatalogError("Furnizorul sau starea este invalidă.");
+    return {...state,suppliers:state.suppliers.map(s=>s.id===id ? {...s,status,updated_at:stamp(s.updated_at)}:s)};
+  });},
   saveSupplier(input,id,revision){return mutate(revision,state=>{
     const valid=validateSupplier(input),existing=id ? state.suppliers.find(s=>s.id===id) : null;
     if(id && !existing)throw new CatalogError("Furnizorul nu mai există.");

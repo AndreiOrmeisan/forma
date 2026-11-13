@@ -90,7 +90,7 @@ export function pricingFingerprint(draft: PricingDraft): string {
 }
 
 export function projectPayload(configuration: WardrobeConfiguration, pricing: PricingDraft,
-  metadata: {name: string; description: string; status: "draft" | "completed"}, saved: FurnitureProject | null, snapshots?:ProjectPriceSnapshot[]): ProjectInput {
+  metadata: {name: string; description: string; status: "draft" | "completed"}, saved: FurnitureProject | null, snapshots?:ProjectPriceSnapshot[], manufacturingSnapshot?:ProjectInput["manufacturing_snapshot"]): ProjectInput {
   const prices = pricingPayload(configuration, pricing,snapshots);
   // Older callers can still edit prices without providing snapshot metadata.
   // Retain only matching historical snapshots; missing ones migrate as manual.
@@ -108,14 +108,15 @@ export function projectPayload(configuration: WardrobeConfiguration, pricing: Pr
     construction_profile_id: saved?.construction_profile_id || "forma-wardrobe-poc-v1",
     calculation_version: saved?.calculation_version || "wardrobe-v1",
     ...(snapshots ? {price_snapshots:snapshots} : retained ? {price_snapshots:retained} : {}),
+    ...(manufacturingSnapshot !== undefined ? {manufacturing_snapshot:manufacturingSnapshot} : saved?.manufacturing_snapshot ? {manufacturing_snapshot:saved.manufacturing_snapshot}:{}),
   };
 }
 
 export async function saveProject(payload: ProjectInput, saved: FurnitureProject | null): Promise<FurnitureProject> {
   let body: object = payload;
   if (saved) {
-    const {name, description, status, confirmed_configuration, manual_price_catalog, waste_allowances, labor_cost, markup_percentage,price_snapshots} = payload;
-    body = {name, description, status, confirmed_configuration, manual_price_catalog, waste_allowances, labor_cost, markup_percentage,...(price_snapshots ? {price_snapshots} : {}), expected_revision: saved.revision};
+    const {name, description, status, confirmed_configuration, manual_price_catalog, waste_allowances, labor_cost, markup_percentage,price_snapshots,manufacturing_snapshot} = payload;
+    body = {name, description, status, confirmed_configuration, manual_price_catalog, waste_allowances, labor_cost, markup_percentage,...(price_snapshots ? {price_snapshots} : {}), ...(manufacturing_snapshot !== undefined ? {manufacturing_snapshot}:{}), expected_revision: saved.revision};
   }
   const value = await projectRequest(saved ? `projects/${saved.id}` : "projects", {method: saved ? "PATCH" : "POST", body: JSON.stringify(body)});
   if (!isProject(value) || !value.compatible || (saved && value.id !== saved.id)) throw new ProjectApiError("Serverul nu a confirmat un proiect valid. Verifică lista proiectelor înainte de a reîncerca salvarea.", 500);

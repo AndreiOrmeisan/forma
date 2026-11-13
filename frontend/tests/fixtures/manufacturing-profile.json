@@ -1,0 +1,22 @@
+{
+  "id": "21000000-0000-4000-8000-000000000001",
+  "name": "Profil sintetic de test - nu utiliza în producție",
+  "supplier_id": null,
+  "schema_version": 1,
+  "revision": 1,
+  "status": "draft",
+  "supported_edge_types": ["abs_0_4", "abs_2"],
+  "edge_processing_rules": {
+    "abs_0_4": {"mode": "layers", "applied_thickness_mm": "0.4", "removal_mm": "0"},
+    "abs_2": {"mode": "net", "net_contribution_mm": "2"}
+  },
+  "cutting_precision_mm": "0.1",
+  "rounding_policy": "exact",
+  "dimensional_tolerance_mm": "0",
+  "depth_convention": "carcass_plus_projections_v1",
+  "back_projection_mm": "3",
+  "front_projection_mm": "18",
+  "notes": "Numai fixture sintetic; nu reprezintă setări recomandate de atelier.",
+  "created_at": "2026-11-13T12:00:00Z",
+  "updated_at": "2026-11-13T12:00:00Z"
+}

@@ -10,6 +10,7 @@ import { invalidPricing } from "./project-api";
 import { estimateWardrobe } from "./estimate-wardrobe";
 import { ProjectCatalogPricing } from "../catalog/project-catalog-pricing";
 import { PdfExportActions } from "../pdf/pdf-export-actions";
+import { ManufacturingProjectPanel } from "../manufacturing/project-manufacturing";
 
 export function WardrobePricingForm({ configuration, initialEstimate }: { configuration: WardrobeConfiguration; initialEstimate?: Estimate }) {
   const { pricing, updatePricing,priceSnapshots=[],appliedEstimate } = useWardrobeProject();
@@ -65,6 +66,7 @@ export function WardrobePricingForm({ configuration, initialEstimate }: { config
     {error && <p role="alert" className={styles.error}>{error}</p>}
     {stale && <p role="status">Datele au fost modificate. Aplică din nou prețurile pentru un deviz actualizat.</p>}
     {result && !stale && <EstimateDetails estimate={result.estimate} />}
+    <ManufacturingProjectPanel configuration={configuration} financialComplete={Boolean(result && !stale && !invalid && result.estimate.is_complete)}/>
     <PdfExportActions configuration={configuration} estimate={result && !stale && !invalid ? result.estimate:null} blocked={busy || catalogBusy} />
     {!result && <p>Devizul nu este încă generat. Prețurile rămân disponibile pe durata acestui proiect, până la reîncărcarea paginii.</p>}
   </section>;

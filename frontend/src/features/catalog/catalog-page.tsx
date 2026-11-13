@@ -26,7 +26,13 @@ export function CatalogPage(){
     <div className={styles.notice}>Catalog dedicat domeniului Mobilier, salvat doar în acest browser. Nu este sincronizat între dispozitive și se poate pierde la ștergerea datelor site-ului. Fără prețuri de piață sau acces automat la furnizori.</div>
     {error && <p className={styles.error} role="alert">{error}</p>}
     <p><RecoveryLink/></p>
+    <p><Link href="/domenii/mobilier/profiluri-prelucrare" className={styles.link}>Profiluri de prelucrare · reguli de atelier, separate de prețuri</Link></p>
     {success && <p role="status">{success}</p>}
+    {catalog && suppliers.length > 0 && <details className={styles.card}><summary>Starea furnizorilor pentru asocierea profilurilor de prelucrare</summary>
+      <p>Arhivarea păstrează furnizorul, ofertele comerciale și copiile istorice. Nu modifică alegerea prețurilor implicite. Un profil asociat unui furnizor șters păstrează referința și afișează un avertisment.</p>
+      {suppliers.map(s => <div className={styles.toolbar} key={s.id}><span>{s.name} · {s.status === "archived" ? "Arhivat" : "Activ"}</span>
+        <button className={styles.secondary} disabled={busy} onClick={() => void mutate(() => localCatalogRepository.setSupplierStatus(s.id, s.status === "archived" ? "active" : "archived", catalog.revision)).catch(() => {})}>{s.status === "archived" ? "Reactivează furnizorul" : "Arhivează furnizorul"}</button></div>)}
+    </details>}
     {!catalog ? <p role="status">{error ? "Datele existente nu au fost înlocuite.":"Încărcăm catalogul…"}</p>:<>
       <div className={styles.tabs} aria-label="Secțiuni catalog"><button aria-pressed={tab==="items"} onClick={()=>{setTab("items");setEditor(null);}}>Catalog de prețuri ({catalog.items.length})</button><button aria-pressed={tab==="suppliers"} onClick={()=>{setTab("suppliers");setEditor(null);}}>Furnizori ({suppliers.length})</button></div>
       {editor?.kind==="supplier" && <SupplierForm key={editor.value?.id || "new-supplier"} initial={editor.value} busy={busy} onCancel={()=>setEditor(null)} onSave={input=>mutate(()=>localCatalogRepository.saveSupplier(input,editor.value?.id || null,catalog.revision))}/>}

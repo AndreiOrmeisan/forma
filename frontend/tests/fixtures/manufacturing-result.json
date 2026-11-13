@@ -1,0 +1,136 @@
+{
+  "dimensional_profile_id": "forma-wardrobe-manufacturing-v1",
+  "calculation_version": "manufacturing-dimensions-v1",
+  "configuration": {
+    "width_mm": 800,
+    "height_mm": 2000,
+    "depth_mm": 600,
+    "doors_count": 2,
+    "shelves_count": 3,
+    "furniture_type": "wardrobe"
+  },
+  "profile_id": "21000000-0000-4000-8000-000000000001",
+  "profile_revision": 1,
+  "readiness": "calculation_ready_unverified",
+  "panels": [
+    {
+      "panel_id": "sides",
+      "name": "Laterale",
+      "quantity": 2,
+      "finished_length_mm": "2000",
+      "finished_width_mm": "600",
+      "raw_length_mm": "2000",
+      "raw_width_mm": "598",
+      "cutting_length_mm": "2000",
+      "cutting_width_mm": "598",
+      "edges": {
+        "top": "none",
+        "bottom": "none",
+        "left": "abs_2",
+        "right": "none"
+      },
+      "issues": []
+    },
+    {
+      "panel_id": "top",
+      "name": "Capac",
+      "quantity": 1,
+      "finished_length_mm": "764",
+      "finished_width_mm": "600",
+      "raw_length_mm": "764",
+      "raw_width_mm": "598",
+      "cutting_length_mm": "764",
+      "cutting_width_mm": "598",
+      "edges": {
+        "top": "none",
+        "bottom": "none",
+        "left": "abs_2",
+        "right": "none"
+      },
+      "issues": []
+    },
+    {
+      "panel_id": "bottom",
+      "name": "Bază",
+      "quantity": 1,
+      "finished_length_mm": "764",
+      "finished_width_mm": "600",
+      "raw_length_mm": "764",
+      "raw_width_mm": "598",
+      "cutting_length_mm": "764",
+      "cutting_width_mm": "598",
+      "edges": {
+        "top": "none",
+        "bottom": "none",
+        "left": "abs_2",
+        "right": "none"
+      },
+      "issues": []
+    },
+    {
+      "panel_id": "shelves",
+      "name": "Polițe",
+      "quantity": 3,
+      "finished_length_mm": "764",
+      "finished_width_mm": "550",
+      "raw_length_mm": "764",
+      "raw_width_mm": "548",
+      "cutting_length_mm": "764",
+      "cutting_width_mm": "548",
+      "edges": {
+        "top": "none",
+        "bottom": "none",
+        "left": "abs_2",
+        "right": "none"
+      },
+      "issues": []
+    },
+    {
+      "panel_id": "doors",
+      "name": "Uși",
+      "quantity": 2,
+      "finished_length_mm": "1996",
+      "finished_width_mm": "397",
+      "raw_length_mm": "1992",
+      "raw_width_mm": "393",
+      "cutting_length_mm": "1992",
+      "cutting_width_mm": "393",
+      "edges": {
+        "top": "abs_2",
+        "bottom": "abs_2",
+        "left": "abs_2",
+        "right": "abs_2"
+      },
+      "issues": []
+    },
+    {
+      "panel_id": "back",
+      "name": "Spate",
+      "quantity": 1,
+      "finished_length_mm": "800",
+      "finished_width_mm": "2000",
+      "raw_length_mm": "800",
+      "raw_width_mm": "2000",
+      "cutting_length_mm": "800",
+      "cutting_width_mm": "2000",
+      "edges": {
+        "top": "none",
+        "bottom": "none",
+        "left": "none",
+        "right": "none"
+      },
+      "issues": []
+    }
+  ],
+  "carcass_depth_mm": "600",
+  "back_projection_mm": "3",
+  "front_projection_mm": "18",
+  "overall_depth_mm": "621",
+  "issues": [],
+  "warnings": [
+    "Dimensiuni brute neconfirmate — verificare în atelier necesară.",
+    "Suprafețele pentru prețuri și lungimile ABS păstrează baza nominală legacy; nu sunt suprafețe brute de achiziție.",
+    "Setările validate nu reprezintă dovada unei asamblări fizice testate.",
+    "Profilul nu are setările validate explicit."
+  ]
+}

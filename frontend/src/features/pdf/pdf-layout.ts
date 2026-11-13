@@ -5,9 +5,11 @@ import type { PdfDocumentData } from "./pdf-data";
 import { formatExactDecimal } from "../furniture/calculate-wardrobe";
 import { formatMoney } from "../furniture/wardrobe-pricing";
 import { createWardrobeLayout, previewViewport } from "../furniture/wardrobe-preview-geometry";
+import { edgeLabels } from "../manufacturing/manufacturing-model";
+import { describeRule, roundingLabels } from "../manufacturing/manufacturing-display";
 
 const ink="#22201E",muted="#68625B",accent="#EAD9C9";
-export const documentTitle=(data:PdfDocumentData)=>data.kind==="quotation" ? "Deviz estimativ":"Fișă tehnică de execuție";
+export const documentTitle=(data:PdfDocumentData)=>data.kind==="quotation" ? "Deviz estimativ":data.manufacturing ? "Fișă tehnică de verificare":"Fișă tehnică de execuție";
 export const localDate=(date:string)=>new Intl.DateTimeFormat("ro-RO",{day:"2-digit",month:"2-digit",year:"numeric",timeZone:"Europe/Bucharest"}).format(new Date(date));
 
 /** Shared print layout. All numbers come from the prepared DTO, not PDF formulas. */
@@ -50,7 +52,7 @@ export class PdfLayout {
     this.gap(6);
     const c=this.data.configuration;
     this.text(`Dulap PAL | ${c.width_mm} × ${c.height_mm} × ${c.depth_mm} mm`,12,ink,174,true);
-    this.text(`Lățime × înălțime × adâncime. ${c.doors_count} uși; ${c.shelves_count} polițe.`,10,muted);
+    this.text(`Lățime × înălțime × ${this.data.kind==="workshop" && this.data.manufacturing ? "adâncime carcasă":"adâncime"}. ${c.doors_count} uși; ${c.shelves_count} polițe.`,10,muted);
   }
   table(head:string[],body:string[][],widths?:number[]){
     this.space(22);
@@ -100,8 +102,10 @@ export class PdfLayout {
   workshop(){
     if(this.data.kind!=="workshop")throw new Error("Tip de document incompatibil.");
     const result=this.data.calculation,decimal=formatExactDecimal;
+    if(this.data.manufacturing)this.manufacturingSummary();
     this.drawing();
     this.heading("Lista de debitare");
+    if(this.data.manufacturing)this.text("Tabel nominal / finit pentru baza financiară. Cotele brute calculate sunt prezentate separat; nu folosi dimensiunile finite ca ordin brut de debitare.",9,muted);
     this.text(`PAL net: ${decimal(result.totals.total_pal_area_m2)} m² | HDF net: ${decimal(result.totals.total_hdf_area_m2)} m² | Piese: ${result.totals.total_panel_count}`,10);
     const bandLabel={none:"fără ABS",abs_2:"ABS 2 mm",abs_0_4:"ABS 0,4 mm"};
     const edgeLabel={length_start:"L început",length_end:"L sfârșit",width_start:"l început (față)",width_end:"l sfârșit"};
@@ -118,6 +122,29 @@ export class PdfLayout {
     notes.forEach(note=>{this.text(`- ${note}`,9,muted);this.gap(2);});
     this.text("Document tehnic estimativ. Dimensiunile și soluțiile constructive trebuie verificate înainte de debitare și execuție.",10,ink,174,true);
     this.text("Desen schematic, fără poziții de găurire proiectate. Documentul nu este un plan de fabricație certificat. Nu include optimizarea plăcilor.",9,muted);
+  }
+  manufacturingSummary(){
+    if(this.data.kind!=="workshop" || !this.data.manufacturing)return;
+    const {snapshot,result}=this.data.manufacturing,profile=snapshot.profile;
+    this.heading("Prelucrare - dimensiuni finite și brute");
+    this.text(`${profile.name} | schema v${profile.schema_version}, revizia ${profile.revision}`,11,ink,174,true);
+    this.text(`Profil dimensional: ${snapshot.dimensional_profile_id} / ${snapshot.calculation_version}`,8,muted);
+    this.text(`ID proces: ${profile.id} | Furnizor/atelier: ${snapshot.supplier_name_at_selection || (profile.supplier_id ? "referință indisponibilă":"atelier independent")}`,9);
+    this.text(`Stare setări la selectare: ${{draft:"ciornă",validated:"validate",archived:"arhivate"}[snapshot.approval_status]}. Furnizor: ${{standalone:"atelier independent",active:"activ",archived:"arhivat",missing:"indisponibil"}[snapshot.supplier_status_at_selection]}.`,9,muted);
+    this.text(`Fabricație: ${result.readiness==="calculation_ready_unverified" ? "Calculabil - neverificat în atelier":"Configurare incompletă"}. Fără aprobare fizică de execuție.`,10,ink,174,true);
+    this.text("Dimensiuni brute neconfirmate — verificare în atelier necesară.",10,ink,174,true);
+    this.text(`Adâncime carcasă: ${result.carcass_depth_mm} mm | proiecție spate: ${result.back_projection_mm ?? "neconfigurată"} mm | front: ${result.front_projection_mm ?? "neconfigurată"} mm.`,9);
+    this.text(result.overall_depth_mm===null ? "Adâncime totală neconfigurată":`Adâncime totală calculată: ${result.overall_depth_mm} mm - verificare fizică necesară.`,10);
+    this.text(`Pas debitare: ${profile.cutting_precision_mm ?? "neconfigurat"} mm | rotunjire: ${profile.rounding_policy ? roundingLabels[profile.rounding_policy]:"neconfigurată"} | toleranță: ${profile.dimensional_tolerance_mm ?? "neconfigurată"} mm.`,9);
+    this.table(["Piesă / buc.","Finit L × l mm","Brut exact L × l mm","Cotă la pas L × l mm"],result.panels.map(p=>[
+      `${p.name} / ${p.quantity}`,`${p.finished_length_mm} × ${p.finished_width_mm}`,
+      `${p.raw_length_mm ?? "?"} × ${p.raw_width_mm ?? "?"}`,`${p.cutting_length_mm ?? "neconfigurat"} × ${p.cutting_width_mm ?? "neconfigurat"}`]),[40,40,44,50]);
+    this.text("Muchii locale panou: sus/jos sunt capetele axei L; stânga/dreapta sunt capetele axei l. Orientarea fibrei rămâne nespecificată.",9,muted);
+    this.table(["Cant","Regulă dimensională"],Object.entries(profile.edge_processing_rules).map(([edge,rule])=>[
+      edgeLabels[edge as keyof typeof edgeLabels],describeRule(rule)]),[40,134]);
+    this.table(["Piesă","Sus / jos / stânga / dreapta"],result.panels.map(p=>[p.name,[p.edges.top,p.edges.bottom,p.edges.left,p.edges.right].map(edge=>edge==="none" ? "fără cant":edgeLabels[edge]).join(" / ")]),[40,134]);
+    [...result.issues,...result.warnings].forEach(warning=>this.text(`- ${warning}`,9,muted));
+    if(profile.notes){this.heading("Note proces");this.text(profile.notes,9);}
   }
   finish():jsPDF {
     const total=this.doc.getNumberOfPages();

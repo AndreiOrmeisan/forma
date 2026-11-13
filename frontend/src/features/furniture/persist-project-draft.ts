@@ -13,6 +13,6 @@ export async function persistProjectDraft(work: ProjectWork) {
     name: work.projectName,
     description: work.projectDescription,
     status: work.projectStatus,
-  }, work.savedProject, work.priceSnapshots);
+  }, work.savedProject, work.priceSnapshots, work.manufacturingSnapshot);
   return saveProject(payload, work.savedProject);
 }

@@ -2,6 +2,7 @@ import { isWardrobeConfiguration, type WardrobeConfiguration } from "./wardrobe-
 import type { pricingPayload } from "./wardrobe-pricing";
 import { priceItems } from "./wardrobe-pricing";
 import { isPriceSnapshots, snapshotsMatchPrices, type ProjectPriceSnapshot } from "./project-price-snapshot";
+import { isManufacturingSnapshot, type ManufacturingSnapshot } from "../manufacturing/manufacturing-model";
 
 export type CatalogEntry = ReturnType<typeof pricingPayload>["price_catalog"][number];
 export type ProjectInput = {
@@ -10,6 +11,7 @@ export type ProjectInput = {
   waste_allowances: {pal: string; hdf: string; abs: string}; labor_cost: string; markup_percentage: string;
   schema_version: number; construction_profile_id: string; calculation_version: string;
   price_snapshots?: ProjectPriceSnapshot[];
+  manufacturing_snapshot?: ManufacturingSnapshot | null;
 };
 export type FurnitureProject = ProjectInput & {
   id: string; created_at: string; updated_at: string; revision: number;
@@ -35,6 +37,7 @@ export function isProject(value: unknown): value is FurnitureProject {
     decimal(v.labor_cost) && decimal(v.markup_percentage) && !!v.waste_allowances &&
     [v.waste_allowances.pal, v.waste_allowances.hdf, v.waste_allowances.abs].every(decimal) &&
     (v.price_snapshots === undefined || isPriceSnapshots(v.price_snapshots)) &&
+    (v.manufacturing_snapshot === undefined || v.manufacturing_snapshot === null || isManufacturingSnapshot(v.manufacturing_snapshot)) &&
     Array.isArray(v.manual_price_catalog) && v.manual_price_catalog.every(entry => entry &&
       priceItems.some(([code, , unit]) => code === entry.item_code && unit === entry.unit) &&
       typeof entry.item_name === "string" && decimal(entry.unit_price_ron) && entry.currency === "RON" &&

@@ -15,7 +15,7 @@ export const isObject=(v:unknown):v is Record<string,unknown>=>!!v && typeof v =
 export const onlyKeys=(v:unknown,keys:string[])=>isObject(v) && Object.keys(v).every(key=>keys.includes(key));
 export const validDate=(v:unknown):v is string=>typeof v === "string" && /(Z|[+-]\d{2}:\d{2})$/.test(v) && Number.isFinite(Date.parse(v));
 export class CatalogError extends Error {}
-export type SupplierInput={name:string;website_url:string|null;contact_details:string|null;notes:string|null};
+export type SupplierInput={name:string;website_url:string|null;contact_details:string|null;notes:string|null;status?:"active"|"archived"};
 export type Supplier=SupplierInput & {id:string;created_at:string;updated_at:string};
 export type CatalogItemInput={item_code:ItemCode;name:string;category:Category;supplier_id:string|null;supplier_sku:string|null;
   material_type:string|null;thickness_mm:number|null;color_or_finish:string|null;sheet_width_mm:number|null;sheet_length_mm:number|null;
@@ -24,7 +24,7 @@ export type CatalogItemInput={item_code:ItemCode;name:string;category:Category;s
 export type CatalogItem=CatalogItemInput & {id:string;updated_at:string};
 export type CatalogState={schema_version:1;revision:number;suppliers:Supplier[];items:CatalogItem[]};
 export const emptyCatalog=():CatalogState=>({schema_version:1,revision:0,suppliers:[],items:[]});
-export const supplierFields=["name","website_url","contact_details","notes"];
+export const supplierFields=["name","website_url","contact_details","notes","status"];
 export const itemFields=["item_code","name","category","supplier_id","supplier_sku","material_type","thickness_mm","color_or_finish","sheet_width_mm","sheet_length_mm","purchase_unit","calculation_unit","unit_price_ron","conversion_factor","product_url","source_type","is_active","is_preferred"];
 
 function text(value:unknown,max:number,required=false):boolean {
@@ -39,6 +39,7 @@ export function validUrl(value:unknown):boolean {
 export function validateSupplier(value:unknown):SupplierInput {
   if(!onlyKeys(value,supplierFields))throw new CatalogError("Datele furnizorului sunt invalide.");
   const v=value as SupplierInput;
+  if(v.status!==undefined && !["active","archived"].includes(v.status))throw new CatalogError("Starea furnizorului este invalidă.");
   if(!text(v.name,120,true))throw new CatalogError("Numele furnizorului trebuie să aibă 1–120 de caractere.");
   if(!validUrl(v.website_url))throw new CatalogError("Adresa furnizorului trebuie să fie un URL http:// sau https:// valid, fără date de autentificare.");
   if(!text(v.contact_details,500) || !text(v.notes,2000))throw new CatalogError("Contactul poate avea maximum 500 de caractere, iar notele maximum 2000.");

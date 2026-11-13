@@ -4,6 +4,8 @@ Start with the [documentation index](README.md) and [agent handoff](agent-handof
 
 ## Project persistence
 
+Sprint 14C adds `forma-wardrobe-manufacturing-v1` under frontend `features/manufacturing/` and backend `domains/furniture/manufacturing.py`. Legacy geometry/financial base remains unchanged; an optional immutable snapshot carries separate dimensional ID/version/rules/approval/depth settings. Public stateless `/api/v1/furniture/manufacturing-dimensions` uses Decimal. Profiles remain domain-local and distinct from prices; financial completeness never grants physical approval. Browser envelope v3/full backup v2 retain legacy readers without automatic migrations. See [manufacturing profiles](manufacturing-profiles.md); DB flags are unchanged.
+
 Sprint 14B adds local-only `/setari/backup-si-restaurare` under `features/storage/`: existing repository/DTO validators, full/partial versioned backups, selected-section preview, merge/explicit replacement and a bounded before/after recovery journal. Normal browser repositories block access while the journal is pending; no cross-key database transaction is claimed. Sketches/drafts/auth/server projects are excluded. See [backup and recovery](backup-and-recovery.md). Calculation/PDF rules and database flags remain unchanged.
 
 The current default frontend mode is `NEXT_PUBLIC_PROJECT_STORAGE=browser`: [browser-project-store.ts](../frontend/src/features/furniture/browser-project-store.ts) saves only validated inputs/identity metadata in localStorage. [project-contract.ts](../frontend/src/features/furniture/project-contract.ts) is the shared DTO/guard contract for both adapters. The existing facade selects browser CRUD/capabilities or the retained API path; calculations/estimates still call FastAPI. No user account or Supabase configuration is required for POC browser saving. Browser history leaves deviz completeness unknown until backend recalculation, never duplicates the engine. The editor restores inputs first and tolerates a temporary estimate failure. See [browser saving](browser-projects.md).
@@ -53,6 +55,7 @@ The Python package uses a `src/forma` layout. `main.py` creates middleware, capa
 | `GET /api/health` | Health status | Public |
 | `POST /api/v1/furniture/analyze-sketch` | Multipart `file`; validate then fixed mock | Public |
 | `POST /api/v1/furniture/calculate` | `{configuration, confirmed: true}`; deterministic quantities | Public |
+| `POST /api/v1/furniture/manufacturing-dimensions` | Confirmed configuration plus immutable process snapshot; Decimal finished/raw/cutting outputs, explicit depth/readiness | Public, stateless, no project/profile persistence |
 | `POST /api/v1/furniture/estimate` | Confirmed configuration, manual `price_catalog`, `waste_allowances`, `labor_cost_ron`, `markup_percent` | Public; recomputes quantities, accepts no authoritative client quantities |
 | `GET /api/v1/furniture/project-capabilities` | `enabled`, `requires_auth`, `storage`, `reason` | Public; not an authorization credential |
 | `GET /api/v1/furniture/projects` | Paginated owner-scoped list (`limit`, `offset`) | Enabled local loopback mode or verified cloud account |

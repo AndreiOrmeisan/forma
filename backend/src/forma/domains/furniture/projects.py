@@ -10,6 +10,7 @@ from pydantic import Field, field_validator, model_validator
 from .pricing import Allowances, Amount, Contract, EstimateRequest, Percent, PriceEntry, ITEMS, estimate_wardrobe
 from .schemas import WardrobeConfiguration
 from .wardrobe_geometry import PROFILE
+from .manufacturing import ManufacturingSnapshot
 
 SCHEMA_VERSION = 1
 CALCULATION_VERSION = "wardrobe-v1"
@@ -62,6 +63,7 @@ class ProjectInput(Contract):
     construction_profile_id: Literal["forma-wardrobe-poc-v1"] = PROFILE.id
     calculation_version: Literal["wardrobe-v1"] = CALCULATION_VERSION
     price_snapshots: tuple[ProjectPriceSnapshot, ...] = Field(default=(), max_length=9)
+    manufacturing_snapshot: ManufacturingSnapshot | None = None
 
     @field_validator("name", mode="before")
     @classmethod
@@ -103,10 +105,11 @@ class ProjectPatch(Contract):
     labor_cost: Amount | None = None
     markup_percentage: Percent | None = None
     price_snapshots: tuple[ProjectPriceSnapshot, ...] | None = Field(default=None, max_length=9)
+    manufacturing_snapshot: ManufacturingSnapshot | None = None
 
     @model_validator(mode="after")
     def no_null_required_fields(self) -> "ProjectPatch":
-        if any(getattr(self, field) is None for field in self.model_fields_set - {"description"}):
+        if any(getattr(self, field) is None for field in self.model_fields_set - {"description", "manufacturing_snapshot"}):
             raise ValueError("Required project fields cannot be null.")
         return self
 
@@ -132,6 +135,7 @@ class ProjectRecord(Contract):
     deviz_complete: bool | None
     warnings: tuple[str, ...]
     price_snapshots: tuple[ProjectPriceSnapshot, ...] = ()
+    manufacturing_snapshot: ManufacturingSnapshot | None = None
 
     @field_validator("created_at", "updated_at")
     @classmethod

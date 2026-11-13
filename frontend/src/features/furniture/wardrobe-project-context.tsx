@@ -9,6 +9,8 @@ import type { WardrobeCalculationResult } from "./calculate-wardrobe";
 import { restorePricing, type FurnitureProject } from "./project-api";
 import { useAuth } from "../auth/auth-context";
 import { persistProjectDraft } from "./persist-project-draft";
+import { validateManufacturingSnapshot, type ManufacturingSnapshot } from "../manufacturing/manufacturing-model";
+import { manufacturingSignature, type ManufacturingResult } from "../manufacturing/manufacturing-api";
 import {
   configurationToDraft,
   validateWardrobeDraft,
@@ -19,6 +21,10 @@ import {
 } from "./wardrobe-configuration";
 
 type WardrobeProject = {
+  manufacturingSnapshot: ManufacturingSnapshot | null;
+  manufacturingResult: {signature: string; result: ManufacturingResult} | null;
+  selectManufacturing: (snapshot: ManufacturingSnapshot | null) => void;
+  acceptManufacturing: (signature: string, result: ManufacturingResult) => void;
   imageUrl: string | null;
   projectName:string;
   updateProjectName:(name:string)=>void;
@@ -50,11 +56,12 @@ type WardrobeProject = {
 
 const WardrobeProjectContext = createContext<WardrobeProject | null>(null);
 
-type ProjectState = Pick<WardrobeProject, "projectName" | "projectDescription" | "projectStatus" | "saving" | "interpretation" | "draft" | "confirmed" | "pricing" | "savedProject" | "priceSnapshots" | "calculation" | "catalogInitialized" | "appliedEstimate"> & { imageUrl: string | null; ownerId:string | null };
+type ProjectState = Pick<WardrobeProject, "manufacturingSnapshot" | "manufacturingResult" | "projectName" | "projectDescription" | "projectStatus" | "saving" | "interpretation" | "draft" | "confirmed" | "pricing" | "savedProject" | "priceSnapshots" | "calculation" | "catalogInitialized" | "appliedEstimate"> & { imageUrl: string | null; ownerId:string | null };
 
 function emptyProject(imageUrl: string | null, ownerId: string | null): ProjectState {
   return {
     imageUrl, ownerId, savedProject: null, projectName: "", projectDescription: "", projectStatus: "draft", saving: false,
+    manufacturingSnapshot: null, manufacturingResult: null,
     priceSnapshots: [], calculation: null, catalogInitialized: false, appliedEstimate: null,
     pricing: initialPricing(), interpretation: null, draft: null, confirmed: null,
   };
@@ -67,6 +74,13 @@ export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
   const imageUrl = image?.url ?? null;
   const [project, setProject] = useState<ProjectState>(() => emptyProject(imageUrl, ownerId));
   const saveRequest = useRef<Promise<FurnitureProject> | null>(null);
+  const selectManufacturing = useCallback((snapshot: ManufacturingSnapshot | null) => {
+    const valid = snapshot === null ? null : validateManufacturingSnapshot(snapshot);
+    setProject(previous => ({...previous, manufacturingSnapshot: valid, manufacturingResult: null}));
+  }, []);
+  const acceptManufacturing = useCallback((signature: string, result: ManufacturingResult) => {
+    setProject(previous => manufacturingSignature(previous.confirmed, previous.manufacturingSnapshot) === signature ? {...previous, manufacturingResult: {signature, result}} : previous);
+  }, []);
 
   // Reset image-dependent data without remounting the active upload component.
   if (project.imageUrl !== imageUrl || (project.ownerId && project.ownerId !== ownerId)) {
@@ -83,6 +97,7 @@ export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
       draft: configurationToDraft(data),
       confirmed: null,
       calculation:null,
+      manufacturingResult: null,
     } : previous);
   }, [imageUrl]);
 
@@ -91,6 +106,7 @@ export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
       ...previous,
       draft: previous.draft ? { ...previous.draft, [field]: value } : null,
       confirmed: null,
+      manufacturingResult: null,
       calculation:null,appliedEstimate:null,
     }));
   }, []);
@@ -99,6 +115,7 @@ export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
     if (!saved.compatible) return;
     setProject(previous => previous.ownerId === ownerId ? ({ ...previous, savedProject: saved, projectName:saved.name,
       projectDescription: saved.description || "", projectStatus: saved.status, interpretation: null,
+      manufacturingSnapshot: saved.manufacturing_snapshot ? structuredClone(saved.manufacturing_snapshot) : null, manufacturingResult: null,
       draft: configurationToDraft(saved.confirmed_configuration), confirmed: Object.freeze({...saved.confirmed_configuration}),
       pricing: restorePricing(saved),priceSnapshots:migrateManualSnapshots(saved.manual_price_catalog,saved.price_snapshots),catalogInitialized:true,calculation:null,appliedEstimate:null }) : previous);
   }, [ownerId]);
@@ -158,7 +175,7 @@ export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <WardrobeProjectContext.Provider value={{ ...project, restoreProject, markSaved, acceptInterpretation, updateField, confirm, updatePricing,acceptCalculation,applyProjectPrices,updateProjectName,
+    <WardrobeProjectContext.Provider value={{ ...project, selectManufacturing, acceptManufacturing, restoreProject, markSaved, acceptInterpretation, updateField, confirm, updatePricing,acceptCalculation,applyProjectPrices,updateProjectName,
       updateProjectDescription, updateProjectStatus, resetDraft, saveDraft }}>
       {children}
     </WardrobeProjectContext.Provider>

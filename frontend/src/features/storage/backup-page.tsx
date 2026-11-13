@@ -9,8 +9,8 @@ import { fullBackupMaxBytes } from "./size-policy";
 import { restoreJournalKey, rollbackRestore, withLocalRestoreLocks } from "./restore-transaction";
 import styles from "./backup.module.css";
 
-const labels = {projects: "Proiecte", catalogs: "Furnizori și prețuri · Mobilier", company_profile: "Datele firmei și logo"};
-const none: RestoreSelection = {projects: false, catalogs: false, company_profile: false};
+const labels = {projects: "Proiecte", catalogs: "Furnizori și prețuri · Mobilier", company_profile: "Datele firmei și logo", manufacturing_profiles: "Profiluri de prelucrare · Mobilier"};
+const none: RestoreSelection = {projects: false, catalogs: false, company_profile: false, manufacturing_profiles: false};
 
 export function downloadLocalFile(text: string, filename: string) {
   const url = URL.createObjectURL(new Blob([text], {type: "application/json;charset=utf-8"}));
@@ -54,7 +54,7 @@ export function BackupPage() {
       const parsed = parseFormaBackup(await file.text());
       if (current !== request.current.selection) return;
       setBackup(parsed);
-      setSelection({projects: "projects" in parsed.sections, catalogs: "catalogs" in parsed.sections, company_profile: "company_profile" in parsed.sections});
+      setSelection({projects: "projects" in parsed.sections, catalogs: "catalogs" in parsed.sections, company_profile: "company_profile" in parsed.sections, manufacturing_profiles: "manufacturing_profiles" in parsed.sections});
     } catch (reason) {if (current === request.current.selection) setError(message(reason));}
     finally {if (current === request.current.selection) setBusy(false);}
   }
@@ -70,7 +70,7 @@ export function BackupPage() {
     {error && <p role="alert" className={styles.error}>{error}</p>}
     {notice && <p role="status" className={styles.notice}>{notice}</p>}
     <section className={styles.card} aria-labelledby="full-backup"><ShieldCheck aria-hidden="true" size={23}/><h2 id="full-backup">Backup complet</h2>
-      <p>Proiectele salvate local, configurațiile, copiile istorice de prețuri, furnizorii, ofertele și profilul firmei cu logo.</p>
+      <p>Proiectele salvate local, configurațiile, copiile istorice de prețuri și prelucrare, furnizorii, ofertele, profilurile de prelucrare și profilul firmei cu logo.</p>
       <p>Fotografiile schițelor, drafturile nesalvate, PDF-urile și conturile nu sunt incluse. Proiectele dintr-un serviciu online nu sunt exportate.</p>
       <button className={styles.primary} disabled={busy || data === null || Boolean(pending) || corrupted.length > 0} onClick={() => void run(async () => {
         const text = await exportFormaBackup(); downloadLocalFile(text, `FORMA_Backup_${new Date().toISOString().slice(0, 10)}.json`);
@@ -85,7 +85,7 @@ export function BackupPage() {
       }}/></label>
       {backup && <>
         <p>Creat: {new Date(backup.created_at).toLocaleString("ro-RO")} · Format: FORMA v{backup.schema_version}</p>
-        <p>{backup.sections.projects?.length ?? 0} proiecte · {incomingCatalog?.suppliers.length ?? 0} furnizori · {incomingCatalog?.items.length ?? 0} oferte · Profil firmă: {backup.sections.company_profile ? "prezent" : "absent"}</p>
+        <p>{backup.sections.projects?.length ?? 0} proiecte · {incomingCatalog?.suppliers.length ?? 0} furnizori · {incomingCatalog?.items.length ?? 0} oferte · {backup.sections.manufacturing_profiles?.profiles.length ?? 0} profiluri de prelucrare · Profil firmă: {backup.sections.company_profile ? "prezent" : "absent"}</p>
         <fieldset disabled={busy}><legend>Secțiuni selectate pentru restaurare</legend>
           {(Object.keys(labels) as (keyof RestoreSelection)[]).map(section => <label className={styles.check} key={section}>
             <input type="checkbox" checked={selection[section]} disabled={!(section in backup.sections)} onChange={event => {setSelection({...selection, [section]: event.target.checked}); invalidate();}}/>{labels[section]}
@@ -102,6 +102,7 @@ export function BackupPage() {
       </>}
       {plan && <div className={styles.preview}>
         <h3>Previzualizarea restaurării</h3>
+        {selection.manufacturing_profiles && <p>Profiluri de prelucrare existente afectate: {plan.affected.manufacturing_profiles ?? "număr necunoscut"}. Copiile din proiecte nu sunt actualizate automat.</p>}
         <p>Înregistrări invalide în fișier: 0. {plan.changes.length} chei locale vor fi modificate. {plan.conflicts.length} conflicte vor fi ignorate.</p>
         {mode === "replace" && <p>Secțiuni locale afectate: {selection.projects ? `${plan.affected.projects} proiecte; ` : ""}{selection.catalogs ? `${plan.affected.catalogs ?? "număr necunoscut de"} furnizori/oferte; ` : ""}{selection.company_profile ? `${plan.affected.company_profile} profil firmă` : ""}. Datele care lipsesc din secțiunea importată vor fi eliminate din secțiunea înlocuită.</p>}
         {plan.conflicts.length > 0 && <details><summary>Înregistrări păstrate și ignorate la import</summary><ul>{plan.conflicts.map((conflict, index) => <li key={index}>{conflict}</li>)}</ul></details>}

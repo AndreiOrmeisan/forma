@@ -1,5 +1,7 @@
 # Deterministic wardrobe engine reference
 
+Sprint 14C does not change these legacy formulas. The separate optional [manufacturing adapter](manufacturing-profiles.md) explicitly treats the same geometric rows as finished dimensions and computes raw/cutting outputs under a distinct dimensional identifier. Existing pricing/ABS/hardware quantities remain on the legacy basis; no raw-area substitution or automatic historical migration.
+
 These are the implemented POC rules, not a general furniture standard or manufacturing certification. Source is [wardrobe_geometry.py](../backend/src/forma/domains/furniture/wardrobe_geometry.py), [panel_calculation.py](../backend/src/forma/domains/furniture/panel_calculation.py) and the related schema/rule modules. Pricing is described separately in [future supplier pricing](future-supplier-pricing.md).
 
 ## Interpretation, validation and confirmation

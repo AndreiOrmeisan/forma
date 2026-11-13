@@ -2,6 +2,8 @@ import { validateCompanyProfile, type CompanyProfile } from "../company/company-
 import { isWardrobeConfiguration, wardrobeFields, type WardrobeConfiguration } from "../furniture/wardrobe-configuration";
 import { isWardrobeCalculationResult, type WardrobeCalculationResult } from "../furniture/calculate-wardrobe";
 import { isEstimate, type Estimate } from "../furniture/wardrobe-pricing";
+import { validateManufacturingSnapshot, type ManufacturingSnapshot } from "../manufacturing/manufacturing-model";
+import { isManufacturingResult, type ManufacturingResult } from "../manufacturing/manufacturing-api";
 
 export type PdfKind="quotation"|"workshop";
 type DocumentIdentity={project_name:string;project_id:string|null;generated_at:string;reference:string};
@@ -9,13 +11,13 @@ type BaseDocument={identity:DocumentIdentity;company:CompanyProfile;configuratio
 // Deliberately allowlisted: client documents never receive the financial estimate,
 // price catalog, suppliers, labor, markup or internal production costs.
 export type QuotationDocument=BaseDocument & {kind:"quotation";selling_price_ron:string;valid_until:string|null};
-export type WorkshopDocument=BaseDocument & {kind:"workshop";calculation:WardrobeCalculationResult};
+export type WorkshopDocument=BaseDocument & {kind:"workshop";calculation:WardrobeCalculationResult;manufacturing?:{snapshot:ManufacturingSnapshot;result:ManufacturingResult}};
 export type PdfDocumentData=QuotationDocument|WorkshopDocument;
 export function sameConfiguration(a:WardrobeConfiguration,b:WardrobeConfiguration){return wardrobeFields.every(key=>a[key]===b[key]) && a.furniture_type===b.furniture_type;}
 export function quotationAvailable(estimate:Estimate|null,configuration:WardrobeConfiguration):boolean {
   return !!estimate && isEstimate(estimate) && estimate.is_complete && estimate.missing_item_codes.length===0 && estimate.selling_price_before_tax_ron!==null && sameConfiguration(configuration,estimate.configuration);
 }
-export function preparePdfData(input:{kind:PdfKind;company:CompanyProfile;configuration:WardrobeConfiguration;calculation:WardrobeCalculationResult|null;estimate:Estimate|null;projectName:string;projectId:string|null;generatedAt?:string;referenceId?:string}):PdfDocumentData {
+export function preparePdfData(input:{kind:PdfKind;company:CompanyProfile;configuration:WardrobeConfiguration;calculation:WardrobeCalculationResult|null;estimate:Estimate|null;projectName:string;projectId:string|null;generatedAt?:string;referenceId?:string;manufacturingSnapshot?:ManufacturingSnapshot|null;manufacturingResult?:ManufacturingResult|null}):PdfDocumentData {
   const company=validateCompanyProfile(input.company),configuration=input.configuration;
   if(!isWardrobeConfiguration(configuration))throw new Error("Confirmă o configurație validă înainte de export.");
   const name=input.projectName.trim();
@@ -32,6 +34,11 @@ export function preparePdfData(input:{kind:PdfKind;company:CompanyProfile;config
     return {...base,kind:"quotation",selling_price_ron:input.estimate!.selling_price_before_tax_ron!,valid_until:validity?.toISOString() || null};
   }
   if(input.kind!=="workshop" || !input.calculation || !isWardrobeCalculationResult(input.calculation) || !sameConfiguration(configuration,input.calculation.input_configuration))throw new Error("Lista tehnică nu este disponibilă pentru configurația confirmată.");
+  if(input.manufacturingSnapshot){
+    const snapshot=validateManufacturingSnapshot(input.manufacturingSnapshot),result=input.manufacturingResult;
+    if(!isManufacturingResult(result) || !sameConfiguration(configuration,result.configuration) || result.profile_id!==snapshot.profile.id || result.profile_revision!==snapshot.profile.revision)throw new Error("Așteaptă calculul actual al profilului de prelucrare înainte de fișa tehnică.");
+    return {...base,kind:"workshop",calculation:structuredClone(input.calculation),manufacturing:{snapshot,result:structuredClone(result)}};
+  }
   return {...base,kind:"workshop",calculation:structuredClone(input.calculation)};
 }
 export function pdfFilename(data:PdfDocumentData):string {

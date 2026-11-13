@@ -4,6 +4,8 @@ Last audited against the local source and installed tools: 2026-11-13. Read [age
 
 ## 1. Install the required tools
 
+Sprint 14C uses the same npm/Python setup with no production dependency/service added. Frontend and backend source must both support `/api/v1/furniture/manufacturing-dimensions`; legacy estimation works without a profile. Enter actual workshop settings at `/domenii/mobilier/profiluri-prelucrare`; see [manufacturing profiles](manufacturing-profiles.md), including optional developer PDF rendering.
+
 Sprint 14B backup/recovery is browser-only and included in `npm ci`, with no extra dependency/account. Open `/setari/backup-si-restaurare` from the furniture profile; see [backup and recovery](backup-and-recovery.md) before restoring data. Test destructive recovery only in a disposable browser profile.
 
 Sprint 12 PDF generation is included in `npm ci` (jsPDF/AutoTable and committed font assets). No PDF server or extra production service is needed. Configure the issuer at `/setari/date-firma`. Optional Python PDF inspection tools are for development only; see [PDF export](pdf-export.md).

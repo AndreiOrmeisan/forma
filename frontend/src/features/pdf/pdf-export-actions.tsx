@@ -9,14 +9,16 @@ import { priceItems, type Estimate } from "../furniture/wardrobe-pricing";
 import type { WardrobeConfiguration } from "../furniture/wardrobe-configuration";
 import { pdfFilename, preparePdfData, quotationAvailable, sameConfiguration, type PdfKind } from "./pdf-data";
 import styles from "./pdf-export.module.css";
+import { manufacturingSignature } from "../manufacturing/manufacturing-api";
 
 export function PdfExportActions({configuration,estimate,blocked=false}:{configuration:WardrobeConfiguration;estimate:Estimate|null;blocked?:boolean}){
-  const {calculation,projectName,savedProject,pricing,priceSnapshots}=useWardrobeProject();
+  const {calculation,projectName,savedProject,pricing,priceSnapshots,manufacturingSnapshot=null,manufacturingResult=null}=useWardrobeProject();
   const [open,setOpen]=useState(false),[company,setCompany]=useState<CompanyProfile|null>(null),[busy,setBusy]=useState<PdfKind|null>(null),[error,setError]=useState(""),[notice,setNotice]=useState("");
   const lock=useRef(false),request=useRef<AbortController|null>(null);
-  const signature=JSON.stringify({configuration,estimate,projectName,pricing,priceSnapshots,company});
+  const signature=JSON.stringify({configuration,estimate,projectName,pricing,priceSnapshots,company,manufacturingSnapshot,manufacturingResult});
   useEffect(()=>()=>request.current?.abort(),[signature,blocked]);
-  const technicalReady=!!calculation && sameConfiguration(configuration,calculation.input_configuration);
+  const production=manufacturingResult?.signature===manufacturingSignature(configuration,manufacturingSnapshot) ? manufacturingResult.result:null;
+  const technicalReady=!!calculation && sameConfiguration(configuration,calculation.input_configuration) && (!manufacturingSnapshot || !!production);
   const named=!!projectName?.trim() && projectName.trim().length<=120;
   const quoted=quotationAvailable(estimate,configuration);
   function reloadCompany(){setError("");try{setCompany(loadCompanyProfile());}catch(reason){setCompany(null);setError(reason instanceof Error ? reason.message:"Datele firmei nu pot fi citite.");}}
@@ -26,7 +28,7 @@ export function PdfExportActions({configuration,estimate,blocked=false}:{configu
     const controller=new AbortController();request.current=controller;
     const timeout=window.setTimeout(()=>controller.abort(),30000);
     try{
-      const data=preparePdfData({kind,company,configuration,calculation,estimate,projectName,projectId:savedProject?.id || null});
+      const data=preparePdfData({kind,company,configuration,calculation,estimate,projectName,projectId:savedProject?.id || null,manufacturingSnapshot,manufacturingResult:production});
       const [{generatePdf},{loadPdfFonts}]=await Promise.all([import("./generate-pdf"),import("./pdf-fonts")]);
       const fonts=await loadPdfFonts(controller.signal);
       if(controller.signal.aborted)return;
@@ -40,7 +42,7 @@ export function PdfExportActions({configuration,estimate,blocked=false}:{configu
     finally{window.clearTimeout(timeout);lock.current=false;setBusy(null);request.current=null;}
   }
   return <section className={styles.panel} aria-label="Export documente PDF">
-    <div className={styles.heading}><div><h3>Pregătit de trimis sau de executat.</h3><p>Două documente, fiecare cu informațiile potrivite.</p></div><button type="button" className={styles.primary} aria-expanded={open} aria-controls="pdf-export-options" disabled={!!busy} onClick={()=>{if(!open)reloadCompany();setOpen(v=>!v);}}><Download size={18} aria-hidden="true"/>Exportă PDF</button></div>
+    <div className={styles.heading}><div><h3>Documente pentru deviz și verificare în atelier.</h3><p>Două documente, fiecare cu informațiile potrivite.</p></div><button type="button" className={styles.primary} aria-expanded={open} aria-controls="pdf-export-options" disabled={!!busy} onClick={()=>{if(!open)reloadCompany();setOpen(v=>!v);}}><Download size={18} aria-hidden="true"/>Exportă PDF</button></div>
     {open && <div id="pdf-export-options">
       <div className={styles.toolbar}><Link href={companyProfileRoute} target="_blank" rel="noopener noreferrer">Datele firmei ↗</Link><button type="button" className={styles.link} disabled={!!busy} onClick={reloadCompany}>Reîncarcă datele firmei</button></div>
       <p className={styles.hint}>Setările se deschid într-o filă nouă pentru a păstra proiectul curent. După salvare, reîncarcă datele firmei aici.</p>

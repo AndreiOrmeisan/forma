@@ -1,11 +1,11 @@
 import { fullBackupMaxBytes, requireByteLimit } from "./size-policy";
 
 export const restoreJournalKey = "forma:restore-journal:v1";
-export type LocalSection = "projects" | "catalogs" | "company_profile";
+export type LocalSection = "projects" | "catalogs" | "company_profile" | "manufacturing_profiles";
 export type StorageChange = {section: LocalSection; key: string; before: string | null; after: string | null};
-export type RestoreJournal = {schema_version: 1; changes: StorageChange[]};
+export type RestoreJournal = {schema_version: 1 | 2; changes: StorageChange[]};
 const allowed = (key: string) => (key.startsWith("forma:wardrobe-project:v1:") && key.length <= 200) ||
-  ["forma:supplier-catalog:furniture:v1", "forma:supplier-catalog:v1", "forma:company-profile:v1"].includes(key);
+  ["forma:supplier-catalog:furniture:v1", "forma:supplier-catalog:v1", "forma:company-profile:v1", "forma:manufacturing-profiles:furniture:v1"].includes(key);
 
 export function assertNoPendingRestore(storage: Storage) {
   let pending: string | null;
@@ -18,13 +18,15 @@ export function assertNoPendingRestore(storage: Storage) {
 
 function validateJournal(value: unknown): RestoreJournal {
   const journal = value as RestoreJournal;
-  if (!journal || journal.schema_version !== 1 || Object.keys(journal).some(key => !["schema_version", "changes"].includes(key)) ||
-    !Array.isArray(journal.changes) || journal.changes.length > 20003) throw new Error("Jurnalul de recuperare este incompatibil. Descarcă datele brute înainte de intervenție.");
+  if (!journal || ![1,2].includes(journal.schema_version) || Object.keys(journal).some(key => !["schema_version", "changes"].includes(key)) ||
+    !Array.isArray(journal.changes) || journal.changes.length > 20004) throw new Error("Jurnalul de recuperare este incompatibil. Descarcă datele brute înainte de intervenție.");
   const seen = new Set<string>();
   for (const entry of journal.changes) {
-    if (!entry || !allowed(entry.key) || seen.has(entry.key) || !["projects", "catalogs", "company_profile"].includes(entry.section) ||
+    if (!entry || !allowed(entry.key) || seen.has(entry.key) || !["projects", "catalogs", "company_profile", "manufacturing_profiles"].includes(entry.section) ||
       (entry.section === "projects") !== entry.key.startsWith("forma:wardrobe-project:v1:") ||
       (entry.section === "company_profile") !== (entry.key === "forma:company-profile:v1") ||
+      (entry.section === "manufacturing_profiles") !== (entry.key === "forma:manufacturing-profiles:furniture:v1") ||
+      (entry.section === "manufacturing_profiles" && journal.schema_version !== 2) ||
       Object.keys(entry).some(key => !["section", "key", "before", "after"].includes(key)) ||
       ![entry.before, entry.after].every(value => value === null || typeof value === "string")) throw new Error("Jurnalul de recuperare este invalid.");
     seen.add(entry.key);
@@ -64,7 +66,7 @@ export function rollbackRestore(storage: Storage): void {
 /** Receives repository-validated changes; staging must fit before any data write. */
 export function commitRestore(storage: Storage, changes: StorageChange[]) {
   assertNoPendingRestore(storage);
-  const journal = validateJournal({schema_version: 1, changes});
+  const journal = validateJournal({schema_version: changes.some(change => change.section === "manufacturing_profiles") ? 2:1, changes});
   for (const entry of changes) {
     if (storage.getItem(entry.key) !== entry.before) throw new Error("Datele locale s-au schimbat după previzualizare. Verifică backupul din nou.");
   }
@@ -90,5 +92,6 @@ export function commitRestore(storage: Storage, changes: StorageChange[]) {
 export async function withLocalRestoreLocks<T>(action: () => T | Promise<T>): Promise<T> {
   if (typeof navigator === "undefined" || !navigator.locks) return action();
   return navigator.locks.request("forma:wardrobe-project-writes:v1", async () =>
-    navigator.locks.request("forma:catalog-writes:v1", async () => action()));
+    navigator.locks.request("forma:catalog-writes:v1", async () =>
+      navigator.locks.request("forma:manufacturing-profile-writes:furniture:v1", async () => action())));
 }

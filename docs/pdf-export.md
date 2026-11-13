@@ -31,6 +31,8 @@ References use `FORMA-YYYYMMDD-<random token>`, not an invoice sequence or tax a
 
 ## Workshop sheet
 
+Sprint 14C adds a manufacturing-aware branch when a detached process snapshot and a matching current dimensional result exist. Its title is **Fișă tehnică de verificare**; it includes finished/raw/quantized tables, profile name/version/supplier, processing rules, carcass/overall depth, readiness and unverified warnings. The original nominal table is explicitly a separate financial basis. Missing/currently unavailable manufacturing results block this branch; incomplete settings remain visibly unverified, never production-approved. Legacy PDF output/disclaimers and client quotation allowlisting remain unchanged. See [manufacturing profiles](manufacturing-profiles.md), including synthetic PDF regeneration/rendering commands.
+
 The technical sheet uses the current validated `WardrobeCalculationResult`: project/configuration identity, proportional front elevations (interior and doors), net PAL/HDF totals, cutting dimensions/thickness/quantities, assigned panel edges, net ABS 2/0.4 mm totals and per-edge lengths, hardware quantities/rules and construction assumptions/warnings.
 
 Drawing geometry calls the same pure `createWardrobeLayout` function as the interactive SVG. A uniform drawing-to-page scale preserves width/height proportions. Depth is a numeric label; panel thickness in the elevation remains schematic. No new material, cutting, banding, hinge or cost formula is introduced. Technical dimensions/edge lengths come directly from existing backend fields. No drilling positions, nesting, whole-sheet purchasing or certified manufacturing plan is implied.

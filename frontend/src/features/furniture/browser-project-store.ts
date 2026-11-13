@@ -6,7 +6,7 @@ import { assertNoPendingRestore } from "../storage/restore-transaction";
 export const browserProjectPrefix = "forma:wardrobe-project:v1:";
 const lockName = "forma:wardrobe-project-writes:v1";
 type StoredProject = ProjectInput & {id:string; created_at:string; updated_at:string; revision:number};
-const inputFields = ["domain","name","description","status","confirmed_configuration","manual_price_catalog","waste_allowances","labor_cost","markup_percentage","schema_version","construction_profile_id","calculation_version","price_snapshots"];
+const inputFields = ["domain","name","description","status","confirmed_configuration","manual_price_catalog","waste_allowances","labor_cost","markup_percentage","schema_version","construction_profile_id","calculation_version","price_snapshots","manufacturing_snapshot"];
 
 export class BrowserProjectError extends Error {
   constructor(message:string, public status=422) {super(message);}
@@ -75,7 +75,7 @@ export function decodeBrowserProject(raw: string, id: string): FurnitureProject 
   if (!projectUuid.test(id)) throw new BrowserProjectError("Identificatorul proiectului este invalid.");
   try {
     const envelope = JSON.parse(raw);
-    if (!onlyKeys(envelope,["storage_version","project"]) || (envelope.storage_version !== 1 && envelope.storage_version !== 2) ||
+    if (!onlyKeys(envelope,["storage_version","project"]) || typeof envelope.storage_version !== "number" || ![1,2,3].includes(envelope.storage_version) ||
       !onlyKeys(envelope.project,[...inputFields,"id","created_at","updated_at","revision"])) throw new Error();
     const {id:storedId,created_at,updated_at,revision,...input} = envelope.project;
     if (storedId !== id || !Number.isSafeInteger(revision) || Number(revision) < 1 ||
@@ -101,10 +101,10 @@ function list(limit:number,offset:number): ProjectPage {
 function write(project:StoredProject): FurnitureProject {
   // Persist only inputs and identity metadata. Never an image, session or derived total.
   const {id,created_at,updated_at,revision} = project;
-  const input = Object.fromEntries(inputFields.map(key=>[key,project[key as keyof ProjectInput]]));
+  const input = Object.fromEntries(inputFields.filter(key=>project[key as keyof ProjectInput]!==undefined).map(key=>[key,project[key as keyof ProjectInput]]));
   const validated = validateInput(input);
   const clean = {...validated,id,created_at,updated_at,revision};
-  try {storage().setItem(browserProjectPrefix+id,JSON.stringify({storage_version:2,project:clean}));}
+  try {storage().setItem(browserProjectPrefix+id,JSON.stringify({storage_version:validated.manufacturing_snapshot ? 3:2,project:clean}));}
   catch {throw new BrowserProjectError("Proiectul nu a putut fi salvat. Spațiul browserului poate fi plin sau blocat. Datele introduse rămân în pagină; nu am înlocuit proiectul existent.",0);}
   return record(clean);
 }
@@ -116,7 +116,7 @@ async function mutation<T>(action:()=>T): Promise<T> {
   return guarded(); // Per-project keys avoid overwriting unrelated projects on older browsers.
 }
 
-export type BrowserProjectEnvelope = {storage_version: 1 | 2; project: StoredProject};
+export type BrowserProjectEnvelope = {storage_version: 1 | 2 | 3; project: StoredProject};
 export function validateProjectBackup(value: unknown): BrowserProjectEnvelope {
   const raw = JSON.stringify(value);
   const id = (value as BrowserProjectEnvelope)?.project?.id;
@@ -189,7 +189,7 @@ export async function browserProjectRequest(path:string, options:RequestInit={})
     }
     if (method === "PATCH" && !match[2]) {
       const patch = body();
-      const mutable = ["name","description","status","confirmed_configuration","manual_price_catalog","waste_allowances","labor_cost","markup_percentage","price_snapshots"];
+      const mutable = ["name","description","status","confirmed_configuration","manual_price_catalog","waste_allowances","labor_cost","markup_percentage","price_snapshots","manufacturing_snapshot"];
       if (!onlyKeys(patch,["expected_revision",...mutable]) || !Number.isSafeInteger(patch.expected_revision) || Number(patch.expected_revision)<1) throw new BrowserProjectError("Modificările proiectului sunt invalide.");
       if (patch.expected_revision !== current.revision || !current.compatible) return conflict();
       const input = Object.fromEntries(inputFields.map(key=>[key,current[key as keyof ProjectInput]]));

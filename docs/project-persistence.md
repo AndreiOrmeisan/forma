@@ -1,5 +1,7 @@
 # Project persistence
 
+Sprint 14C adds optional `manufacturing_snapshot` to project input/patch/record DTOs while retaining the legacy construction/calculation identifiers for financial quantities. The snapshot carries the separate finished/raw dimensional version and explicit process/approval/depth rules; no automatic migration, price refresh or database activation. Browser envelope v3/full backup v2 preserve new records while retaining old readers. See [manufacturing profiles](manufacturing-profiles.md).
+
 Sprint 11 adds optional validated project price snapshots without changing geometry/calculation versions or enabling backend persistence. Default browser projects read envelope v1/v2 and write v2 only on explicit save. Catalog edits never rewrite projects; confirmed price refresh saves only rates/snapshots after backend estimation. See [supplier catalog](supplier-catalog.md) for exact migration, provenance and backup boundaries.
 
 For the complete laptop setup see [INIT](INIT.md); for actual service addresses and deployment variables see [services and deployment](services-and-deployment.md). Cloud setup status is owner-managed; source support is not a claim that it is active online.

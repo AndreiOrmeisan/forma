@@ -4,13 +4,14 @@ import { emptyCatalog, isObject, onlyKeys, validDate, validateCatalog, type Cata
 import { companyProfileKey, decodeCompanyProfile, loadCompanyProfile, validateCompanyProfile, type CompanyProfile } from "../company/company-profile";
 import { fullBackupMaxBytes, requireByteLimit } from "./size-policy";
 import { assertNoPendingRestore, commitRestore, restoreJournalKey, withLocalRestoreLocks, type LocalSection, type StorageChange } from "./restore-transaction";
+import { manufacturingStorageKey, loadManufacturingProfiles, emptyManufacturingStore, validateManufacturingStore, type ManufacturingStore } from "../manufacturing/manufacturing-repository";
 
-export type FormaBackup = {format: "forma-backup"; schema_version: 1; created_at: string; application: "FORMA";
-  sections: {projects?: BrowserProjectEnvelope[]; catalogs?: {domain_id: "furniture"; catalog: CatalogState}[]; company_profile?: CompanyProfile | null}};
+export type FormaBackup = {format: "forma-backup"; schema_version: 1 | 2; created_at: string; application: "FORMA";
+  sections: {projects?: BrowserProjectEnvelope[]; catalogs?: {domain_id: "furniture"; catalog: CatalogState}[]; company_profile?: CompanyProfile | null; manufacturing_profiles?: ManufacturingStore}};
 export type LocalSnapshot = Record<string, string>;
 export type RestoreMode = "merge" | "replace";
 export type RestoreSelection = Record<LocalSection, boolean>;
-const sectionNames: LocalSection[] = ["projects", "catalogs", "company_profile"];
+const sectionNames: LocalSection[] = ["projects", "catalogs", "company_profile", "manufacturing_profiles"];
 
 export function localStorageSource(): Storage {
   try {const source = window.localStorage; source.getItem(restoreJournalKey); return source;}
@@ -20,6 +21,7 @@ function sectionFor(key: string): LocalSection | null {
   if (key.startsWith(browserProjectPrefix)) return "projects";
   if ([catalogStorageKey, legacyCatalogStorageKey].includes(key)) return "catalogs";
   if (key === companyProfileKey) return "company_profile";
+  if (key === manufacturingStorageKey) return "manufacturing_profiles";
   return null;
 }
 export function captureLocalData(source = localStorageSource()): LocalSnapshot {
@@ -36,6 +38,7 @@ export function inspectLocalData(data: LocalSnapshot) {
       if (section === "projects") decodeBrowserProject(raw, key.slice(browserProjectPrefix.length));
       else if (section === "catalogs") validateCatalog(JSON.parse(raw));
       else if (section === "company_profile") decodeCompanyProfile(raw);
+      else if (section === "manufacturing_profiles") validateManufacturingStore(JSON.parse(raw));
       else throw new Error("Restaurare întreruptă sau în curs. Revino la datele anterioare înainte de alte modificări.");
     } catch (reason) {error = reason instanceof Error ? reason.message : "Date incompatibile.";}
     return {key, section, error};
@@ -44,9 +47,11 @@ export function inspectLocalData(data: LocalSnapshot) {
 
 export function validateFormaBackup(value: unknown): FormaBackup {
   if (!onlyKeys(value, ["format", "schema_version", "created_at", "application", "sections"]) || !isObject(value) ||
-    value.format !== "forma-backup" || value.schema_version !== 1 || value.application !== "FORMA" || !validDate(value.created_at) ||
+    value.format !== "forma-backup" || ![1,2].includes(value.schema_version as number) || value.application !== "FORMA" || !validDate(value.created_at) ||
     !onlyKeys(value.sections, sectionNames) || !isObject(value.sections)) throw new Error("Backup FORMA invalid sau versiune neacceptată. Fișierul original nu a fost modificat.");
   const sections = value.sections;
+  if (value.schema_version === 1 && ("manufacturing_profiles" in sections || Array.isArray(sections.projects) && sections.projects.some(p => p?.project?.manufacturing_snapshot))) throw new Error("Datele de prelucrare necesită backup FORMA v2; nu reinterpretăm un fișier v1.");
+  if ("manufacturing_profiles" in sections) validateManufacturingStore(sections.manufacturing_profiles);
   if (!Object.keys(sections).length) throw new Error("Backupul nu conține secțiuni.");
   if ("projects" in sections) {
     if (!Array.isArray(sections.projects) || sections.projects.length > 10000) throw new Error("Lista de proiecte este invalidă (maximum 10000).");
@@ -92,8 +97,9 @@ export async function exportFormaBackup(): Promise<string> {
     const catalog = await localCatalogRepository.load();
     const company_profile = loadCompanyProfile();
     if (JSON.stringify(before) !== JSON.stringify(captureLocalData(source))) throw new Error("Datele s-au schimbat în timpul exportului. Încearcă din nou.");
-    const backup = validateFormaBackup({format: "forma-backup", schema_version: 1, created_at: new Date().toISOString(), application: "FORMA",
-      sections: {projects, catalogs: [{domain_id: "furniture", catalog}], company_profile}});
+    const manufacturing_profiles = loadManufacturingProfiles();
+    const backup = validateFormaBackup({format: "forma-backup", schema_version: 2, created_at: new Date().toISOString(), application: "FORMA",
+      sections: {projects, catalogs: [{domain_id: "furniture", catalog}], company_profile, manufacturing_profiles}});
     const text = JSON.stringify(backup);
     parseFormaBackup(text); // Export/import contract checked before offering the file.
     return text;
@@ -109,7 +115,7 @@ export function buildRestorePlan(input: FormaBackup, baseline: LocalSnapshot, se
   if (!["merge", "replace"].includes(mode) || !sectionNames.some(section => selection[section])) throw new Error("Selectează cel puțin o secțiune și un mod valid.");
   if (baseline[restoreJournalKey]) throw new Error("Recuperează mai întâi restaurarea întreruptă.");
   const changes: StorageChange[] = [], conflicts: string[] = [], warnings: string[] = [];
-  const affected: Record<LocalSection, number | null> = {projects: 0, catalogs: 0, company_profile: 0};
+  const affected: Record<LocalSection, number | null> = {projects: 0, catalogs: 0, company_profile: 0, manufacturing_profiles: 0};
   const add = (section: LocalSection, key: string, after: string | null) => {
     const before = baseline[key] ?? null;
     if (before !== after) changes.push({section, key, before, after});
@@ -154,6 +160,29 @@ export function buildRestorePlan(input: FormaBackup, baseline: LocalSnapshot, se
     if (companyProfileKey in baseline && mode === "merge") conflicts.push("Profilul firmei: înregistrarea existentă va fi păstrată.");
     else add("company_profile", companyProfileKey, incoming === null ? null : JSON.stringify({schema_version: 1, profile: validateCompanyProfile(incoming)}));
     affected.company_profile = companyProfileKey in baseline ? 1 : 0;
+  }
+  if (selection.manufacturing_profiles && backup.sections.manufacturing_profiles) {
+    const incoming = validateManufacturingStore(backup.sections.manufacturing_profiles);
+    const raw = baseline[manufacturingStorageKey];
+    let current = emptyManufacturingStore();
+    if (raw) {
+      try {current = validateManufacturingStore(JSON.parse(raw));}
+      catch {
+        if (mode === "merge") throw new Error("Profilurile de prelucrare sunt deteriorate. Descarcă datele brute și confirmă înlocuirea secțiunii.");
+        affected.manufacturing_profiles = null;
+      }
+    }
+    if (affected.manufacturing_profiles !== null) affected.manufacturing_profiles = current.profiles.length;
+    const kept = new Map(current.profiles.map(p => [p.id, p]));
+    const profiles = mode === "merge" ? [...current.profiles] : [];
+    for (const profile of incoming.profiles) {
+      const existing = kept.get(profile.id);
+      if (existing && mode === "merge") {conflicts.push(`Profil de prelucrare: ${profile.name} (${profile.id})`); continue;}
+      profiles.push(existing ? {...profile, revision: Math.max(existing.revision, profile.revision) + 1} : profile);
+    }
+    if (mode === "replace" || JSON.stringify(profiles) !== JSON.stringify(current.profiles)) {
+      add("manufacturing_profiles", manufacturingStorageKey, JSON.stringify(validateManufacturingStore({...incoming, profiles, revision: raw ? Math.max(current.revision, incoming.revision) + 1 : incoming.revision})));
+    }
   }
   return {backup, baseline: structuredClone(baseline), selection: {...selection}, mode, changes, conflicts, affected, warnings, revisionFloor,
     requiresConfirmation: mode === "replace"};

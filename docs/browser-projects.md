@@ -12,6 +12,8 @@ This is the default when unset/empty. No new dependency, paid service or databas
 
 ## Lifecycle and saved data
 
+Sprint 14C adds optional immutable manufacturing snapshots, independent of price snapshots. Explicit saves with a selected process use browser envelope v3; v1/v2 legacy records remain readable and unchanged on open. Existing inputs/revisions and price rules stay authoritative. See [manufacturing profiles](manufacturing-profiles.md) for distinct financial/dimensional versions, process readiness and backup v2 support.
+
 Save a named project → list → refresh/reopen → edit → confirm/recalculate → update the same UUID → duplicate → delete one selected project after confirmation. Configuration, exact price strings/provenance, allowances, labor, markup, metadata and construction/schema/calculation versions are preserved. Blank prices differ from explicit zero.
 
 No image/blob/object URL, auth token, mock interpretation, HTML deviz or authoritative derived total is added to project records. Python remains responsible for calculations. Browser history says the deviz is checked on opening rather than inventing client-side completeness rules.
