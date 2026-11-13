@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useState, type ReactNode } from
 import { useImageDraft } from "@/components/image-upload/image-draft-context";
 import { initialPricing, type PricingDraft } from "./wardrobe-pricing";
 import { restorePricing, type FurnitureProject } from "./project-api";
+import { useAuth } from "../auth/auth-context";
 import {
   configurationToDraft,
   validateWardrobeDraft,
@@ -29,13 +30,16 @@ type WardrobeProject = {
 
 const WardrobeProjectContext = createContext<WardrobeProject | null>(null);
 
-type ProjectState = Pick<WardrobeProject, "interpretation" | "draft" | "confirmed" | "pricing" | "savedProject"> & { imageUrl: string | null };
+type ProjectState = Pick<WardrobeProject, "interpretation" | "draft" | "confirmed" | "pricing" | "savedProject"> & { imageUrl: string | null; ownerId:string | null };
 
 export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
+  const {user} = useAuth();
+  const ownerId = user?.id || null;
   const { image } = useImageDraft();
   const imageUrl = image?.url ?? null;
   const [project, setProject] = useState<ProjectState>({
     imageUrl,
+    ownerId,
     savedProject: null,
     pricing: initialPricing(),
     interpretation: null,
@@ -44,8 +48,11 @@ export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
   });
 
   // Reset image-dependent data without remounting the active upload component.
-  if (project.imageUrl !== imageUrl) {
-    setProject({ imageUrl, interpretation: null, draft: null, confirmed: null, pricing: initialPricing(), savedProject: null });
+  if (project.imageUrl !== imageUrl || (project.ownerId && project.ownerId !== ownerId)) {
+    setProject({ imageUrl, ownerId, interpretation: null, draft: null, confirmed: null, pricing: initialPricing(), savedProject: null });
+  } else if (project.ownerId !== ownerId) {
+    // First login preserves an unsaved guest workflow; switching accounts clears it.
+    setProject({...project,ownerId});
   }
 
   const acceptInterpretation = useCallback((data: MockInterpretation) => {
@@ -67,14 +74,14 @@ export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
 
   const restoreProject = useCallback((saved: FurnitureProject) => {
     if (!saved.compatible) return;
-    setProject(previous => ({ ...previous, savedProject: saved, interpretation: null,
+    setProject(previous => previous.ownerId === ownerId ? ({ ...previous, savedProject: saved, interpretation: null,
       draft: configurationToDraft(saved.confirmed_configuration), confirmed: Object.freeze({...saved.confirmed_configuration}),
-      pricing: restorePricing(saved) }));
-  }, []);
+      pricing: restorePricing(saved) }) : previous);
+  }, [ownerId]);
 
   const markSaved = useCallback((saved: FurnitureProject) => {
-    setProject(previous => ({ ...previous, savedProject: saved }));
-  }, []);
+    setProject(previous => previous.ownerId === ownerId ? ({ ...previous, savedProject: saved }) : previous);
+  }, [ownerId]);
 
   function confirm() {
     if (!project.draft) return false;

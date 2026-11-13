@@ -1,6 +1,7 @@
 import { isWardrobeConfiguration, type WardrobeConfiguration } from "./wardrobe-configuration";
 import { initialPricing, priceItems, pricingError, pricingPayload, type PricingDraft } from "./wardrobe-pricing";
 import { furnitureRoutes } from "../../config/domains";
+import { projectAccessToken } from "../auth/supabase-client";
 
 export type CatalogEntry = ReturnType<typeof pricingPayload>["price_catalog"][number];
 export type ProjectInput = {
@@ -14,7 +15,7 @@ export type FurnitureProject = ProjectInput & {
   compatible: boolean; deviz_complete: boolean | null; warnings: string[];
 };
 export type ProjectPage = {items: FurnitureProject[]; total: number; limit: number; offset: number};
-export type ProjectCapabilities = {enabled: boolean; reason: string | null};
+export type ProjectCapabilities = {enabled: boolean; reason: string | null; requires_auth?: boolean; storage?: "cloud" | "local" | "disabled"};
 export const projectUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const projectHref = (id: string) => `${furnitureRoutes.projects}/deschide?id=${encodeURIComponent(id)}`;
 
@@ -47,22 +48,24 @@ export class ProjectApiError extends Error {
 export async function projectRequest(path: string, options: RequestInit = {}): Promise<unknown> {
   const base = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000").replace(/\/$/, "");
   let response: Response;
+  const token = await projectAccessToken();
   try {
     response = await fetch(`${base}/api/v1/furniture/${path}`, {
       ...options, cache: "no-store", signal: options.signal || AbortSignal.timeout(20000),
-      headers: { "Content-Type": "application/json", ...options.headers },
+      headers: { "Content-Type": "application/json", ...(token ? {Authorization:`Bearer ${token}`} : {}), ...options.headers },
     });
   } catch {
-    throw new ProjectApiError("Nu putem contacta stocarea locală. Verifică backendul și încearcă din nou. Datele introduse nu au fost șterse.", 0);
+    throw new ProjectApiError("Nu putem contacta serviciul de proiecte. Verifică conexiunea și încearcă din nou. Datele introduse nu au fost șterse.", 0);
   }
   if (!response.ok) {
     const messages: Record<number, string> = {
-      403: "Salvarea este permisă numai pe calculatorul local.",
-      404: "Proiectul nu există sau salvarea locală nu este activată.",
+      403: "Nu ai acces la această stocare. Verifică autentificarea sau modul local.",
+      401: "Autentifică-te pentru a accesa proiectele tale. Sesiunea poate fi expirată.",
+      404: "Proiectul nu există, a fost șters sau nu ai acces la el.",
       409: "Proiectul a fost modificat în altă sesiune sau versiunea este incompatibilă. Redeschide-l înainte de a salva; păstrează separat modificările tale.",
       422: "Datele proiectului sunt invalide. Verifică numele, configurația și prețurile.",
     };
-    throw new ProjectApiError(messages[response.status] || "Stocarea locală nu este disponibilă. Încearcă din nou.", response.status);
+    throw new ProjectApiError(messages[response.status] || "Serviciul de proiecte nu este disponibil. Încearcă din nou.", response.status);
   }
   if (response.status === 204) return null;
   try { return await response.json(); }
@@ -73,10 +76,11 @@ export async function projectCapabilities(): Promise<ProjectCapabilities> {
   try {
     const value = await projectRequest("project-capabilities") as ProjectCapabilities;
     if (typeof value?.enabled === "boolean" && (value.reason === null || typeof value.reason === "string")) return {
-      enabled: value.enabled, reason: value.enabled ? null : value.reason || "Salvarea este disponibilă numai în modul de dezvoltare locală.",
+      enabled: value.enabled, requires_auth:value.requires_auth === true, storage:value.storage,
+      reason: value.enabled ? null : value.reason || "Salvarea online nu este încă activată.",
     };
   } catch { /* Old public deployments fail closed too. */ }
-  return {enabled: false, reason: "Salvarea locală nu este disponibilă. Verifică backendul și modul de dezvoltare locală."};
+  return {enabled: false, reason: "Salvarea nu este disponibilă momentan. Verifică serviciul de proiecte și configurarea salvării online."};
 }
 
 export async function getProject(id: string): Promise<FurnitureProject> {

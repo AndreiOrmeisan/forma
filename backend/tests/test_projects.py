@@ -22,6 +22,7 @@ def data(**changes):
 
 @pytest.fixture
 def local(monkeypatch, tmp_path):
+    monkeypatch.delenv("ENABLE_CLOUD_PROJECTS", raising=False)
     monkeypatch.setenv("FORMA_ENV", "local")
     monkeypatch.setenv("ENABLE_LOCAL_PROJECTS", "true")
     monkeypatch.delenv("RENDER", raising=False)
@@ -136,6 +137,7 @@ def test_rollback_database_errors_and_historical_versions(local, monkeypatch):
 
 @pytest.mark.parametrize("environment,enabled,render", [(None, None, None), ("production", "true", None), ("local", "false", None), ("local", "true", "true")])
 def test_production_routes_absent_even_with_spoofed_headers(monkeypatch, environment, enabled, render, tmp_path):
+    monkeypatch.delenv("ENABLE_CLOUD_PROJECTS", raising=False)
     for name, value in [("FORMA_ENV", environment), ("ENABLE_LOCAL_PROJECTS", enabled), ("RENDER", render)]:
         if value is None:
             monkeypatch.delenv(name, raising=False)

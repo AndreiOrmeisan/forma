@@ -1,8 +1,10 @@
 # FORMA architecture
 
-## Local project persistence
+## Project persistence
 
-Furniture projects persist validated configuration/pricing inputs with UUID, UTC timestamps, schema/profile/calculation versions and optimistic revisions. Domain-local `project_store.py` provides transactional stdlib SQLite storage and numbered schema initialization. Derived quantities and estimates are recalculated after compatibility checks; images remain temporary. The frontend restores the existing project context in a static-export-compatible saved editor, not a separate calculator. Project CRUD is absent in default/production deployments and on Render, enabled only explicitly for loopback local development. No authentication or production shared database is introduced. See [project persistence](project-persistence.md) for setup, lifecycle, backups, migrations and future ownership/PostgreSQL requirements.
+Furniture projects persist validated configuration/pricing inputs with UUID, UTC timestamps, schema/profile/calculation versions and optimistic revisions. Domain-local `project_store.py` supplies explicit local SQLite; `cloud_project_store.py` reuses the same contracts for authenticated Supabase PostgreSQL. Shared `cloud_auth.py` verifies the user's token at Supabase Auth; every cloud query uses that token and an owner filter, with SQL RLS independently enforcing ownership. No admin/service-role key is used. Default CRUD is absent; local SQLite remains loopback-only and disabled on Render. Cloud CRUD is explicitly configured and requires authentication. See [free online setup](free-online-setup.md).
+
+The official browser Supabase SDK manages sessions/refresh and Google OAuth in a popup, preserving the current image flow. Account changes clear private in-memory state. Inputs remain editable before authentication/storage availability; saving waits for both. Derived quantities/estimates are still recalculated after version compatibility checks; images stay temporary. The static-export-compatible editor restores the existing context and calculators. See [project persistence](project-persistence.md) for lifecycle and backups.
 
 ## Manual pricing
 

@@ -14,23 +14,31 @@ import { WardrobeCalculation } from "./wardrobe-calculation";
 import { WardrobePricingForm } from "./wardrobe-pricing-form";
 import { ProjectSaveForm } from "./project-save-form";
 import styles from "./projects.module.css";
+import { useAuth } from "../auth/auth-context";
+import { AccountPanel } from "../auth/account-panel";
 
 export function ProjectEditor() {
   const id = useSearchParams().get("id") || "";
-  return <ProjectEditorContent key={id} id={id} />;
+  const {user} = useAuth();
+  return <ProjectEditorContent key={`${id}:${user?.id || "guest"}`} id={id} />;
 }
 
 function ProjectEditorContent({id}: {id: string}) {
+  const {user,loading:authLoading} = useAuth();
+  const userId = user?.id;
+  const [requiresLogin,setRequiresLogin] = useState(false);
   const { restoreProject, savedProject, confirmed, pricing } = useWardrobeProject();
   const [loaded, setLoaded] = useState<{project: FurnitureProject; estimate: Estimate | null} | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
+    if (authLoading) return;
     let active = true;
     async function open() {
       try {
         const capability = await projectCapabilities();
-        if (!capability.enabled) throw new Error(capability.reason || "Salvarea locală nu este disponibilă.");
+        if (!capability.enabled) throw new Error(capability.reason || "Salvarea online nu este încă disponibilă.");
+        if (capability.requires_auth && !userId) {if(active) setRequiresLogin(true);throw new Error("Autentifică-te pentru a deschide proiectul.");}
         const project = await getProject(id);
         let estimate: Estimate | null = null;
         if (project.compatible) {
@@ -49,11 +57,12 @@ function ProjectEditorContent({id}: {id: string}) {
     }
     void open();
     return () => {active = false;};
-  }, [restoreProject, attempt, id]);
+  }, [restoreProject, attempt, id, userId, authLoading]);
 
   return <main id="main-content" className={styles.page}>
     <Link className={styles.textLink} href={furnitureRoutes.projects}><ArrowLeft size={18} aria-hidden="true" /> Proiectele mele</Link>
     {error && <section className={styles.card} role="alert"><h1>Proiectul nu poate fi deschis.</h1><p className={styles.error}>{error}</p><button className={styles.secondary} onClick={() => {setError(null); setAttempt(value => value + 1);}}>Încearcă din nou</button></section>}
+    {requiresLogin && <AccountPanel />}
     {!loaded && !error && <p role="status">Deschidem proiectul și recalculăm devizul…</p>}
     {loaded && !loaded.project.compatible && <section className={styles.card}><h1>{loaded.project.name}</h1>{loaded.project.warnings.map(warning => <p role="alert" key={warning}>{warning}</p>)}<p>Profil: {loaded.project.construction_profile_id} · Calcul: {loaded.project.calculation_version}. Datele salvate nu au fost modificate.</p></section>}
     {loaded?.project.compatible && savedProject && <>

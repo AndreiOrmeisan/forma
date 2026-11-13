@@ -25,7 +25,8 @@ The current POC is exclusively focused on furniture and particleboard (PAL) ward
 
 ## Conventions
 
-- Project persistence is local-only: mount CRUD only with explicit `FORMA_ENV=local` and `ENABLE_LOCAL_PROJECTS=true`, and never on Render. Keep default/production routes absent; do not treat CORS or request headers as authentication. Bind local servers to loopback. See `docs/project-persistence.md`.
+- SQLite project persistence is local-only: explicit `FORMA_ENV=local` and `ENABLE_LOCAL_PROJECTS=true`, never on Render. Cloud projects require explicit `ENABLE_CLOUD_PROJECTS=true`, Supabase Auth verification and per-user PostgreSQL RLS. Default routes stay absent; configured public CRUD requires a verified bearer token. Never use service_role/secret keys, trust owner headers, or treat CORS as authentication. See `docs/free-online-setup.md` and `docs/project-persistence.md`.
+- The user requires free services only. Do not activate paid plans, paid add-ons or billing. Supabase Free setup is manual and has quotas/pausing; never promise unlimited/free-forever infrastructure. Google OAuth avoids requiring a separate email delivery service. Do not add real AI.
 - `domains/furniture/projects.py` reuses current input validators; `project_store.py` uses stdlib SQLite, explicit transactions and numbered schema initialization. Save inputs, never image blobs or authoritative derived totals. Preserve UUIDs on edit, require revision checks, and block incompatible historical profiles/calculation versions instead of silently migrating them.
 
 - Furniture pricing lives in `domains/furniture/pricing.py`: reuse quantity calculation, match stable item codes, and obtain prices via the small PriceProvider boundary. Manual RON input is the only current source. Missing positive-quantity prices make final totals null; explicit zero is valid. See `docs/future-supplier-pricing.md` for rounding, allowances and future adapters.

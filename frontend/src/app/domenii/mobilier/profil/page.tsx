@@ -1,0 +1,13 @@
+import Link from "next/link";
+import { AccountPanel } from "@/features/auth/account-panel";
+import { furnitureRoutes } from "@/config/domains";
+import styles from "@/features/furniture/projects.module.css";
+
+export default function ProfilePage() {
+  return <main id="main-content" className={styles.page}>
+    <header className={styles.heading}><h1>Profilul meu</h1></header>
+    <AccountPanel />
+    <p>Dacă ai deschis conectarea dintr-un proiect, revino la fila inițială. Sesiunea se actualizează automat, iar schița rămâne acolo.</p>
+    <Link href={furnitureRoutes.projects} className={styles.textLink}>Proiectele mele</Link>
+  </main>;
+}

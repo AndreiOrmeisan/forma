@@ -1,6 +1,6 @@
 # FORMA
 
-Local project saving, history and editing use SQLite (Python standard library). CRUD is disabled by default and never enabled on Render. For the local-only setup, endpoints, backups and production security boundary, see [project persistence](docs/project-persistence.md). Saved projects preserve configuration and pricing inputs; photographed sketches remain temporary. The public deployment continues to support anonymous calculations without exposing a shared project database.
+Project saving supports optional local SQLite and private online accounts with Supabase Auth/PostgreSQL. Cloud setup uses the Free plan and Google OAuth; see [free online setup](docs/free-online-setup.md) for account creation, migration and Render/GitHub configuration. Online saving is inactive until those steps are completed. Unauthenticated SQLite CRUD stays disabled on Render. Saved projects preserve configuration/pricing inputs; photographed sketches remain temporary. See [project persistence](docs/project-persistence.md) for lifecycle, backups and boundaries.
 
 Manual wardrobe pricing is available on the result screen. Enter material/hardware unit prices, optional cost-only waste allowances, fixed labor and commercial markup, then explicitly apply them. Prices start empty; missing required prices produce an incomplete estimate. `POST /api/v1/furniture/estimate` recalculates quantities from confirmed configuration and returns Decimal monetary strings, rounded HALF_UP to cents, excluding VAT. See [pricing architecture](docs/future-supplier-pricing.md).
 

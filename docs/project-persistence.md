@@ -1,14 +1,18 @@
-# Local project persistence
+# Project persistence
+
+## Online account mode
+
+Private online projects are now supported through Supabase Auth (Google OAuth) and PostgreSQL with row-level ownership policies. This is an explicitly configured alternative to local SQLite, not anonymous public access. See [free online setup](free-online-setup.md) for the Free-plan setup, SQL migration, OAuth dashboard settings, Render/GitHub variables and external verification steps. No cloud account/resource is provisioned automatically. Local projects are not automatically imported.
 
 ## Scope and deployment boundary
 
 SQLite saves wardrobe configuration and manual pricing inputs, not photographs or derived totals. No image blobs, object URLs, temporary image paths or HTML deviz are persisted. Existing anonymous mock, quantity and pricing endpoints remain available.
 
-There is no authentication or ownership model yet. **Project CRUD is disabled by default** and is absent from routes and OpenAPI unless both `FORMA_ENV=local` and `ENABLE_LOCAL_PROJECTS=true` are set. A Render runtime (`RENDER` present) cannot enable it. No database is opened or initialized when disabled. A public read-only `GET /api/v1/furniture/project-capabilities` lets the UI explain disabled saving. This capability is not an authorization token.
+**Project CRUD remains disabled by default.** Local SQLite requires both `FORMA_ENV=local` and `ENABLE_LOCAL_PROJECTS=true`; a Render runtime cannot enable unauthenticated SQLite CRUD. Cloud CRUD requires `ENABLE_CLOUD_PROJECTS=true`, a valid HTTPS Supabase URL/public key, and a verified user bearer token on every request. No SQLite database is initialized in cloud/disabled mode. The public read-only `GET /api/v1/furniture/project-capabilities` indicates mode and login requirements; it is not an authorization token.
 
 Run local development bound to `127.0.0.1`, never through a public tunnel or a public reverse proxy. Local routes additionally require a direct loopback peer, a loopback Host, and no non-loopback Origin. Forwarding headers and custom "development" headers are not trusted. CORS and hidden buttons are not access control. Environment switches are operator configuration, not authentication. Never enable these switches on another publicly hosted service either.
 
-The current repository defines a GitHub Pages static frontend and no backend persistent-volume configuration. No authenticated production project storage is implemented. A database on an ephemeral deployment filesystem can disappear during restart/redeploy; it must not be used for production persistence. This sprint intentionally does not deploy a public project database or purchase a service.
+GitHub Pages remains a static frontend. A local database on an ephemeral Render filesystem is not production persistence. The configured cloud mode stores projects in Supabase PostgreSQL independently of Render restarts, with per-user authorization and no administrative key. Account/provider configuration and the SQL migration must be applied before online saving is active. No paid resource is purchased by this implementation.
 
 ## Local setup (PowerShell)
 
@@ -52,4 +56,4 @@ Each operation uses its own SQLite connection and explicit transaction, paramete
 
 Stop the local backend before copying the database file to a secure backup location. Alternatively use Python's SQLite backup API for a consistent live backup; copying an active database file without its journal is unsafe. Test restoring a copy before relying on a backup. Keep backups outside Git and protect them as project data.
 
-Production needs real authentication, ownership on every project, authorization tests, private image storage if added later, quotas and backups. A persistent volume alone does not solve access control. Future PostgreSQL migration should retain UUIDs, UTC timestamps, JSON contracts and revisions while replacing the store/transaction adapter and adding a reviewed migration tool. Scope every read/write/duplicate/delete to authenticated ownership; never trust a submitted owner ID. Enable production routes only after these controls and durable storage are implemented and verified.
+Cloud mode retains UUIDs, UTC timestamps, JSON input contracts and optimistic revisions. Every list/read/write/duplicate/delete uses the user verified by Supabase Auth, explicit owner filters and PostgreSQL RLS. Future work includes private image storage if requested, quotas/backups and reviewed migrations as schemas evolve. A persistent volume alone does not solve access control. Never trust a submitted owner ID or an unverified JWT; never replace a failed cloud request with anonymous SQLite access.

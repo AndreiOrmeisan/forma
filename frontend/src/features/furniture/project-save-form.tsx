@@ -6,9 +6,12 @@ import { useWardrobeProject } from "./wardrobe-project-context";
 import { invalidPricing, pricingFingerprint, projectCapabilities, projectHref, projectPayload, restorePricing, saveProject, type ProjectCapabilities } from "./project-api";
 import { validateWardrobeDraft } from "./wardrobe-configuration";
 import styles from "./projects.module.css";
+import { useAuth } from "../auth/auth-context";
+import { AccountPanel } from "../auth/account-panel";
 
 export function ProjectSaveForm({ available }: {available?: boolean}) {
   const { confirmed, draft, pricing, savedProject, markSaved } = useWardrobeProject();
+  const {user,loading:authLoading} = useAuth();
   const [capability, setCapability] = useState<ProjectCapabilities | null>(() => available ? {enabled:true, reason:null} : null);
   const [name, setName] = useState(savedProject?.name || "");
   const [description, setDescription] = useState(savedProject?.description || "");
@@ -22,12 +25,13 @@ export function ProjectSaveForm({ available }: {available?: boolean}) {
     JSON.stringify(draft ? validateWardrobeDraft(draft).configuration : null) !== JSON.stringify(savedProject.confirmed_configuration) ||
     pricingFingerprint(pricing) !== pricingFingerprint(restorePricing(savedProject)) : !!name.trim();
   const nameError = name.trim().length === 0 ? "Dă un nume proiectului." : name.trim().length > 120 ? "Folosește cel mult 120 de caractere." : null;
+  const needsLogin = capability?.requires_auth === true && (!user || authLoading);
   useEffect(() => {
     if (available) return;
     let active = true;
     projectCapabilities().then(value => {if (active) setCapability(value);});
     return () => {active = false;};
-  }, [available, checkAttempt]);
+  }, [available, checkAttempt, user?.id]);
   useEffect(() => {
     if (!dirty) return;
     const warn = (event: BeforeUnloadEvent) => {event.preventDefault();};
@@ -36,7 +40,7 @@ export function ProjectSaveForm({ available }: {available?: boolean}) {
   }, [dirty]);
 
   async function save() {
-    if (!confirmed || nameError || invalidPricing(pricing) || !capability?.enabled) return;
+    if (!confirmed || nameError || invalidPricing(pricing) || !capability?.enabled || needsLogin) return;
     setBusy(true); setError(null);
     try {
       const payload = projectPayload(confirmed, pricing, {name, description, status}, savedProject);
@@ -48,17 +52,18 @@ export function ProjectSaveForm({ available }: {available?: boolean}) {
   }
 
   return <section className={styles.card} aria-labelledby="save-project-title">
-    <div className={styles.sectionHeading}><span className={styles.eyebrow}>PROIECT LOCAL</span><h2 id="save-project-title">{savedProject ? "Salvează modificările" : "Salvează proiectul"}</h2></div>
+    <div className={styles.sectionHeading}><span className={styles.eyebrow}>{capability?.storage === "local" ? "PROIECT LOCAL" : "PROIECTUL TĂU"}</span><h2 id="save-project-title">{savedProject ? "Salvează modificările" : "Salvează proiectul"}</h2></div>
     <p>Salvăm configurația și prețurile. Imaginea originală nu este salvată permanent.</p>
     {!capability && <p role="status">Verificăm disponibilitatea salvării…</p>}
     {capability && !capability.enabled && <div role="status"><p>{capability.reason}</p><button type="button" className={styles.secondary} onClick={() => setCheckAttempt(value => value + 1)}>Verifică din nou</button></div>}
+    {needsLogin && <AccountPanel />}
     <form noValidate onSubmit={event => {event.preventDefault(); if (!busy) void save();}}>
-      <fieldset disabled={!capability?.enabled || busy} className={styles.fields}>
+      <fieldset disabled={busy} className={styles.fields}>
         <label htmlFor="project-name">Numele proiectului<input id="project-name" value={name} maxLength={120} onChange={event => setName(event.target.value)} aria-invalid={!!nameError} aria-describedby={nameError ? "project-name-error" : undefined} required /></label>
         {nameError && <p id="project-name-error" className={styles.error}>{nameError}</p>}
         <label htmlFor="project-description">Descriere <span>· opțional</span><textarea id="project-description" rows={3} maxLength={2000} value={description} onChange={event => setDescription(event.target.value)} /></label>
         <label htmlFor="project-status">Stare<select id="project-status" value={status} onChange={event => setStatus(event.target.value as "draft" | "completed")}><option value="draft">În lucru</option><option value="completed">Finalizat</option></select></label>
-        <button type="submit" className={styles.primary} disabled={!confirmed || !!nameError || invalidPricing(pricing) || !capability?.enabled || busy}>{busy ? "Salvăm…" : savedProject ? "Salvează modificările" : "Salvează proiectul"}</button>
+        <button type="submit" className={styles.primary} disabled={!confirmed || !!nameError || invalidPricing(pricing) || !capability?.enabled || needsLogin || busy}>{busy ? "Salvăm…" : savedProject ? "Salvează modificările" : "Salvează proiectul"}</button>
       </fieldset>
     </form>
     {!confirmed && <p>Confirmă configurația modificată înainte de salvare.</p>}

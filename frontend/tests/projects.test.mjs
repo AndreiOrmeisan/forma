@@ -98,12 +98,14 @@ test("duplicate and delete API calls target only the selected project", async co
   assert.ok(calls[1].url.includes(`expected_revision=${fixture.revision}`));
 });
 
-test("production save UI is disabled before backend availability is confirmed", () => {
+test("project name remains editable while saving waits for backend availability", () => {
   const {ProjectSaveForm} = loadTypeScriptModule("src/features/furniture/project-save-form.tsx", {
     "./wardrobe-project-context":{useWardrobeProject:()=>({confirmed:fixture.confirmed_configuration,pricing:initialPricing(),savedProject:null,markSaved:()=>{}})},
   });
   const html = renderToStaticMarkup(React.createElement(ProjectSaveForm));
-  assert.match(html, /fieldset disabled/);
+  assert.ok(!html.includes("<fieldset disabled"));
+  assert.match(html, /id="project-name"/);
+  assert.match(html, /<button[^>]*disabled=""[^>]*>Salvează proiectul/);
   assert.match(html, /Imaginea originală nu este salvată permanent/);
   assert.match(html, /Verificăm disponibilitatea/);
 });
@@ -111,6 +113,7 @@ test("production save UI is disabled before backend availability is confirmed", 
 test("project context restores editable state without inventing an interpretation or image", () => {
   let state;
   const {WardrobeProjectProvider} = loadTypeScriptModule("src/features/furniture/wardrobe-project-context.tsx", {
+    "../auth/auth-context":{useAuth:()=>({user:null})},
     react:{...React,useCallback:fn=>fn,useState(initial){state ??= initial; return [state,next=>{state=typeof next==="function"?next(state):next;}];}},
     "@/components/image-upload/image-draft-context":{useImageDraft:()=>({image:null})},
   });
@@ -140,6 +143,7 @@ test("edited save form waits for backend confirmation before reporting success",
       if (!(index in state)) state[index] = typeof initial === "function" ? initial() : initial;
       return [state[index], next => {state[index] = typeof next === "function" ? next(state[index]) : next;}];
     }},
+    "../auth/auth-context":{useAuth:()=>({user:null,loading:false})},
     "./project-api":{...api,saveProject:async (payload,saved)=>{captured={payload,saved};return pending;}},
     "./wardrobe-project-context":{useWardrobeProject:()=>({confirmed:fixture.confirmed_configuration,draft:{width_mm:"800",height_mm:"2000",depth_mm:"600",doors_count:"2",shelves_count:"3"},pricing:initialPricing(),savedProject:fixture,markSaved:value=>{marked=value;}})},
   });

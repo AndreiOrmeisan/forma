@@ -8,7 +8,8 @@ import { FolderOpen, House, UserRound } from "lucide-react";
 export function BottomNavigation() {
   const pathname = usePathname().replace(/\/$/, "");
   const isHome = pathname === furnitureRoutes.home;
-  const isProjects = pathname === furnitureRoutes.projects;
+  const isProjects = pathname === furnitureRoutes.projects || pathname.startsWith(`${furnitureRoutes.projects}/`);
+  const isProfile = pathname === `${furnitureRoutes.home}/profil`;
   return (
     <nav className="bottom-navigation" aria-label="Navigare principală">
       <Link
@@ -27,7 +28,7 @@ export function BottomNavigation() {
         <FolderOpen size={22} strokeWidth={1.6} aria-hidden="true" />
         <span>Proiecte</span>
       </Link>
-      <button type="button" className="nav-item" disabled><UserRound size={22} strokeWidth={1.6} aria-hidden="true" /><span>Profil<span className="sr-only"> — în curând</span></span></button>
+      <Link href={`${furnitureRoutes.home}/profil`} className={`nav-item${isProfile ? " nav-active" : ""}`} aria-current={isProfile ? "page" : undefined}><UserRound size={22} strokeWidth={1.6} aria-hidden="true" /><span>Profil</span></Link>
     </nav>
   );
 }

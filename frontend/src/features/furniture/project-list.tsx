@@ -6,9 +6,19 @@ import { ArrowLeft, Plus } from "lucide-react";
 import { furnitureRoutes } from "@/config/domains";
 import { isProject, projectCapabilities, projectHref, projectRequest, type FurnitureProject, type ProjectPage } from "./project-api";
 import styles from "./projects.module.css";
+import { useAuth } from "../auth/auth-context";
+import { AccountPanel } from "../auth/account-panel";
 
 const PAGE_SIZE = 12;
 export function ProjectList() {
+  const {user} = useAuth();
+  return <ProjectListContent key={user?.id || "guest"} />;
+}
+
+function ProjectListContent() {
+  const {user,loading:authLoading} = useAuth();
+  const userId = user?.id;
+  const [requiresLogin,setRequiresLogin] = useState(false);
   const [page, setPage] = useState<ProjectPage | null>(null);
   const [offset, setOffset] = useState(0);
   const [attempt, setAttempt] = useState(0);
@@ -24,6 +34,8 @@ export function ProjectList() {
       const capability = await projectCapabilities();
       if (!active) return;
       if (!capability.enabled) {setUnavailable(capability.reason); setLoading(false); return;}
+      if (capability.requires_auth && (!userId || authLoading)) {setRequiresLogin(true);setLoading(false);return;}
+      setRequiresLogin(false);
       setUnavailable(null);
       try {
         const value = await projectRequest(`projects?limit=${PAGE_SIZE}&offset=${offset}`) as ProjectPage;
@@ -37,7 +49,7 @@ export function ProjectList() {
     }
     void load();
     return () => {active = false;};
-  }, [offset, attempt]);
+  }, [offset, attempt, userId, authLoading]);
 
   function reload() {setLoading(true); setError(null); setAttempt(value => value + 1);}
   async function duplicate(project: FurnitureProject) {
@@ -61,11 +73,12 @@ export function ProjectList() {
 
   return <main id="main-content" className={styles.page}>
     <Link className={styles.textLink} href={furnitureRoutes.home}><ArrowLeft size={18} aria-hidden="true" /> Înapoi acasă</Link>
-    <header className={styles.heading}><div><h1>Proiectele mele</h1><p>Configurațiile și devizele tale, păstrate local.</p></div><Link className={styles.primary} href={furnitureRoutes.newProject}><Plus size={18} aria-hidden="true" /> Proiect nou</Link></header>
-    <aside className={styles.notice}>Salvarea este disponibilă exclusiv local. Schițele fotografiate nu sunt salvate permanent.</aside>
+    <header className={styles.heading}><div><h1>Proiectele mele</h1><p>Configurațiile și devizele tale salvate.</p></div><Link className={styles.primary} href={furnitureRoutes.newProject}><Plus size={18} aria-hidden="true" /> Proiect nou</Link></header>
+    <aside className={styles.notice}>În modul online, proiectele sunt private și disponibile pe dispozitivele unde folosești același cont. Schițele fotografiate nu sunt salvate permanent.</aside>
+    {requiresLogin && <AccountPanel />}
     {notice && <p role="status" className={styles.notice}>{notice}</p>}
     {loading && <p role="status">Încărcăm proiectele…</p>}
-    {unavailable && <section className={styles.card}><h2>Salvarea locală este indisponibilă</h2><p>{unavailable}</p><button type="button" className={styles.secondary} onClick={reload}>Verifică din nou</button></section>}
+    {unavailable && <section className={styles.card}><h2>Salvarea nu este încă disponibilă</h2><p>{unavailable}</p><button type="button" className={styles.secondary} onClick={reload}>Verifică din nou</button></section>}
     {error && <div role="alert" className={styles.card}><p className={styles.error}>{error}</p><button type="button" className={styles.secondary} onClick={reload}>Încearcă din nou</button></div>}
     {!loading && !unavailable && !error && page && <>
       <ProjectCards projects={page.items} busy={busy} onDuplicate={project => void duplicate(project)} onDelete={setDeleting} />
