@@ -18,6 +18,8 @@ The furniture estimate endpoint separates existing quantity engines, manual pric
 
 ## Architectural principle
 
+PDF export is a frontend presentation boundary under `features/pdf/`, with separate allowlisted document DTOs, reusable print layout and lazy browser generation. Company profile storage is shared issuer information under `features/company/`; it is not a global customer/supplier registry. Quotes consume only a current complete final estimate; workshop sheets consume existing calculation outputs and shared preview geometry. No pricing/quantity formula is duplicated and export never refreshes catalog prices. See [PDF export](pdf-export.md).
+
 FORMA is a multi-domain estimation platform. Furniture is the first implemented domain. Shared platform functionality must remain domain-agnostic, while calculation rules and domain-specific validation must remain isolated.
 
 The current POC exclusively targets furniture and particleboard (PAL) wardrobes. Electrical installations, plumbing, construction, interiors, and HVAC are future domains displayed as unavailable in the catalog.

@@ -18,6 +18,8 @@ import {
 } from "./wardrobe-configuration";
 
 type WardrobeProject = {
+  projectName:string;
+  updateProjectName:(name:string)=>void;
   priceSnapshots:ProjectPriceSnapshot[];
   calculation:WardrobeCalculationResult|null;
   catalogInitialized:boolean;
@@ -39,7 +41,7 @@ type WardrobeProject = {
 
 const WardrobeProjectContext = createContext<WardrobeProject | null>(null);
 
-type ProjectState = Pick<WardrobeProject, "interpretation" | "draft" | "confirmed" | "pricing" | "savedProject" | "priceSnapshots" | "calculation" | "catalogInitialized" | "appliedEstimate"> & { imageUrl: string | null; ownerId:string | null };
+type ProjectState = Pick<WardrobeProject, "projectName" | "interpretation" | "draft" | "confirmed" | "pricing" | "savedProject" | "priceSnapshots" | "calculation" | "catalogInitialized" | "appliedEstimate"> & { imageUrl: string | null; ownerId:string | null };
 
 export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
   const {user} = useAuth();
@@ -50,6 +52,7 @@ export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
     imageUrl,
     ownerId,
     savedProject: null,
+    projectName:"",
     priceSnapshots:[],calculation:null,catalogInitialized:false,appliedEstimate:null,
     pricing: initialPricing(),
     interpretation: null,
@@ -59,7 +62,7 @@ export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
 
   // Reset image-dependent data without remounting the active upload component.
   if (project.imageUrl !== imageUrl || (project.ownerId && project.ownerId !== ownerId)) {
-    setProject({ imageUrl, ownerId, interpretation: null, draft: null, confirmed: null, pricing: initialPricing(), savedProject: null,priceSnapshots:[],calculation:null,catalogInitialized:false,appliedEstimate:null });
+    setProject({ imageUrl, ownerId, interpretation: null, draft: null, confirmed: null, pricing: initialPricing(), savedProject: null,projectName:"",priceSnapshots:[],calculation:null,catalogInitialized:false,appliedEstimate:null });
   } else if (project.ownerId !== ownerId) {
     // First login preserves an unsaved guest workflow; switching accounts clears it.
     setProject({...project,ownerId});
@@ -86,7 +89,7 @@ export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
 
   const restoreProject = useCallback((saved: FurnitureProject) => {
     if (!saved.compatible) return;
-    setProject(previous => previous.ownerId === ownerId ? ({ ...previous, savedProject: saved, interpretation: null,
+    setProject(previous => previous.ownerId === ownerId ? ({ ...previous, savedProject: saved, projectName:saved.name,interpretation: null,
       draft: configurationToDraft(saved.confirmed_configuration), confirmed: Object.freeze({...saved.confirmed_configuration}),
       pricing: restorePricing(saved),priceSnapshots:migrateManualSnapshots(saved.manual_price_catalog,saved.price_snapshots),catalogInitialized:true,calculation:null,appliedEstimate:null }) : previous);
   }, [ownerId]);
@@ -109,6 +112,7 @@ export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
       priceSnapshots:priceItems.some(([code])=>code===key) && (value.trim()==="" || !pricingError(value)) ?
         overrideSnapshot(previous.priceSnapshots,key,value.trim()==="" ? null:value.replace(",",".")) : previous.priceSnapshots}));
   },[]);
+  const updateProjectName=useCallback((name:string)=>setProject(previous=>({...previous,projectName:name})),[]);
 
   function confirm() {
     if (!project.draft) return false;
@@ -119,7 +123,7 @@ export function WardrobeProjectProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <WardrobeProjectContext.Provider value={{ ...project, restoreProject, markSaved, acceptInterpretation, updateField, confirm, updatePricing,acceptCalculation,applyProjectPrices }}>
+    <WardrobeProjectContext.Provider value={{ ...project, restoreProject, markSaved, acceptInterpretation, updateField, confirm, updatePricing,acceptCalculation,applyProjectPrices,updateProjectName }}>
       {children}
     </WardrobeProjectContext.Provider>
   );

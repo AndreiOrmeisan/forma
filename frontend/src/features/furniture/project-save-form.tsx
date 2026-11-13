@@ -12,10 +12,10 @@ import { browserStorageNotice, getProjectStorageMode } from "../../config/projec
 import { migrateManualSnapshots, snapshotFingerprint } from "./project-price-snapshot";
 
 export function ProjectSaveForm({ available }: {available?: boolean}) {
-  const { confirmed, draft, pricing, savedProject, markSaved,priceSnapshots } = useWardrobeProject();
+  const { confirmed, draft, pricing, savedProject, markSaved,priceSnapshots,updateProjectName,projectName } = useWardrobeProject();
   const {user,loading:authLoading} = useAuth();
   const [capability, setCapability] = useState<ProjectCapabilities | null>(() => available ? {enabled:true, reason:null,storage:getProjectStorageMode() === "browser" ? "browser" : undefined} : null);
-  const [name, setName] = useState(savedProject?.name || "");
+  const [name, setName] = useState(projectName ?? savedProject?.name ?? "");
   const [description, setDescription] = useState(savedProject?.description || "");
   const [status, setStatus] = useState<"draft" | "completed">(savedProject?.status || "draft");
   const [busy, setBusy] = useState(false);
@@ -62,7 +62,7 @@ export function ProjectSaveForm({ available }: {available?: boolean}) {
     {needsLogin && <AccountPanel />}
     <form noValidate onSubmit={event => {event.preventDefault(); if (!busy) void save();}}>
       <fieldset disabled={busy} className={styles.fields}>
-        <label htmlFor="project-name">Numele proiectului<input id="project-name" value={name} maxLength={120} onChange={event => setName(event.target.value)} aria-invalid={!!nameError} aria-describedby={nameError ? "project-name-error" : undefined} required /></label>
+        <label htmlFor="project-name">Numele proiectului<input id="project-name" value={name} maxLength={120} onChange={event => {setName(event.target.value);updateProjectName?.(event.target.value);}} aria-invalid={!!nameError} aria-describedby={nameError ? "project-name-error" : undefined} required /></label>
         {nameError && <p id="project-name-error" className={styles.error}>{nameError}</p>}
         <label htmlFor="project-description">Descriere <span>· opțional</span><textarea id="project-description" rows={3} maxLength={2000} value={description} onChange={event => setDescription(event.target.value)} /></label>
         <label htmlFor="project-status">Stare<select id="project-status" value={status} onChange={event => setStatus(event.target.value as "draft" | "completed")}><option value="draft">În lucru</option><option value="completed">Finalizat</option></select></label>

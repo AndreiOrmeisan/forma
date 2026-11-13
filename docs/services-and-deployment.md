@@ -4,6 +4,8 @@ Last source audit: 2026-11-13. These are the recorded project addresses and conf
 
 ## Service directory
 
+Sprint 12 PDF export runs in the frontend; company data/logo stays in browser storage and is not sent to a PDF service. No new service or environment secret is required. `next.config.ts` derives public `NEXT_PUBLIC_ASSET_BASE_PATH` for bundled font URLs, including `/forma` on GitHub Pages; do not configure it as a secret. No database flags are enabled. See [PDF export](pdf-export.md).
+
 Sprint 11 adds a browser-local supplier catalog at `/domenii/mobilier/furnizori` (published under the existing `/forma` base). It needs no additional hosting, backend supplier endpoints, secrets or database activation. JSON export/import is a manual catalog backup; it is not cloud synchronization. See [supplier catalog](supplier-catalog.md).
 
 **Current POC:** `NEXT_PUBLIC_PROJECT_STORAGE=browser` is the default and saves projects on the visitor's browser/device, including GitHub Pages. No database/account configuration is needed. The owner deferred Supabase setup; retained backend stores require an explicit later `api` selection. Calculations still use FastAPI. See [browser saving](browser-projects.md).

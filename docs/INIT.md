@@ -4,6 +4,8 @@ Last audited against the local source and installed tools: 2026-11-13. Read [age
 
 ## 1. Install the required tools
 
+Sprint 12 PDF generation is included in `npm ci` (jsPDF/AutoTable and committed font assets). No PDF server or extra production service is needed. Configure the issuer at `/setari/date-firma`. Optional Python PDF inspection tools are for development only; see [PDF export](pdf-export.md).
+
 The Sprint 11 personal supplier catalog needs no additional tools, accounts or environment variables. After local startup, open `/domenii/mobilier/furnizori`; data starts empty and is saved in this browser. Use its manual JSON backup before clearing site data. See [supplier catalog](supplier-catalog.md).
 
 | Tool | Required baseline | Download / notes |

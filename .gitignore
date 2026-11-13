@@ -43,3 +43,7 @@ env/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Local PDF validation artifacts (synthetic samples and rendered pages)
+/output/pdf/
+/tmp/pdfs/

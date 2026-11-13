@@ -23,6 +23,7 @@ if (authUrl || authKey) {
 }
 
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_ASSET_BASE_PATH: isGitHubPages ? (process.env.NEXT_PUBLIC_BASE_PATH || "/forma") : "" },
   output: isGitHubPages ? "export" : undefined,
   basePath: isGitHubPages ? (process.env.NEXT_PUBLIC_BASE_PATH || "/forma") : "",
   trailingSlash: isGitHubPages,
