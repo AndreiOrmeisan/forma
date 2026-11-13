@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "./auth-context";
 import styles from "../furniture/projects.module.css";
+import { browserStorageNotice, getProjectStorageMode } from "../../config/project-storage";
 
 export function AccountPanel() {
   const {user,loading,configured,error:sessionError,signIn,signOut} = useAuth();
@@ -21,6 +22,12 @@ export function AccountPanel() {
     catch(reason){setError(reason instanceof Error ? reason.message : "Deconectarea nu a reușit.");}
     finally{setBusy(false);}
   }
+  if (getProjectStorageMode() === "browser") return <section className={styles.card} aria-label="Mod POC">
+    <h2>Mod POC · salvare în browser</h2>
+    <p>Nu ai nevoie de cont sau de configurarea Supabase pentru a salva proiecte în această versiune.</p>
+    <p>{browserStorageNotice}</p>
+    <p>Pe un dispozitiv partajat, proiectele sunt vizibile persoanelor care folosesc același browser. Conturile online vor putea fi activate ulterior.</p>
+  </section>;
   return <section className={styles.card} aria-label="Cont FORMA">
     <h2>{user ? "Contul tău" : "Salvează proiectele în contul tău"}</h2>
     {!configured ? <p>Autentificarea online nu este încă activată pentru această instalare. Câmpurile pot fi completate, dar salvarea online necesită configurarea serviciului gratuit.</p> : loading ? <p role="status">Verificăm sesiunea…</p> : user ? <>

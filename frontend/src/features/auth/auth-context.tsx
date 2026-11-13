@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getSupabase } from "./supabase-client";
+import { getProjectStorageMode } from "../../config/project-storage";
 
 type Account = {id:string; email:string | null} | null;
 type Auth = {user: Account; loading:boolean; configured:boolean; error:string | null; signIn:()=>Promise<void>; signOut:()=>Promise<void>};
@@ -11,7 +12,7 @@ export function AuthProvider({children}: {children:ReactNode}) {
   const [user, setUser] = useState<Account>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const configured = !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const configured = getProjectStorageMode() === "api" && !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   useEffect(() => {
     const supabase = getSupabase();
     let active = true;

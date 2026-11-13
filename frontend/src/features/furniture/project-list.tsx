@@ -8,6 +8,7 @@ import { isProject, projectCapabilities, projectHref, projectRequest, type Furni
 import styles from "./projects.module.css";
 import { useAuth } from "../auth/auth-context";
 import { AccountPanel } from "../auth/account-panel";
+import { browserStorageNotice, getProjectStorageMode } from "../../config/project-storage";
 
 const PAGE_SIZE = 12;
 export function ProjectList() {
@@ -39,7 +40,8 @@ function ProjectListContent() {
       setUnavailable(null);
       try {
         const value = await projectRequest(`projects?limit=${PAGE_SIZE}&offset=${offset}`) as ProjectPage;
-        if (!Array.isArray(value?.items) || !value.items.every(isProject) || !Number.isSafeInteger(value.total) || value.total < 0) throw new Error("Lista proiectelor primită de la server este invalidă.");
+        if (!Array.isArray(value?.items) || !value.items.every(isProject) || !Number.isSafeInteger(value.total) || value.total < 0 ||
+          (value.warnings !== undefined && (!Array.isArray(value.warnings) || !value.warnings.every(warning=>typeof warning === "string")))) throw new Error("Lista proiectelor primită este invalidă.");
         if (active) {
           if (offset > 0 && value.total <= offset) setOffset(Math.max(0, offset - PAGE_SIZE));
           else setPage(value);
@@ -74,12 +76,13 @@ function ProjectListContent() {
   return <main id="main-content" className={styles.page}>
     <Link className={styles.textLink} href={furnitureRoutes.home}><ArrowLeft size={18} aria-hidden="true" /> Înapoi acasă</Link>
     <header className={styles.heading}><div><h1>Proiectele mele</h1><p>Configurațiile și devizele tale salvate.</p></div><Link className={styles.primary} href={furnitureRoutes.newProject}><Plus size={18} aria-hidden="true" /> Proiect nou</Link></header>
-    <aside className={styles.notice}>În modul online, proiectele sunt private și disponibile pe dispozitivele unde folosești același cont. Schițele fotografiate nu sunt salvate permanent.</aside>
+    <aside className={styles.notice}>{getProjectStorageMode() === "browser" ? browserStorageNotice : "În modul online, proiectele sunt private și disponibile pe dispozitivele unde folosești același cont. Schițele fotografiate nu sunt salvate permanent."}</aside>
     {requiresLogin && <AccountPanel />}
     {notice && <p role="status" className={styles.notice}>{notice}</p>}
     {loading && <p role="status">Încărcăm proiectele…</p>}
     {unavailable && <section className={styles.card}><h2>Salvarea nu este încă disponibilă</h2><p>{unavailable}</p><button type="button" className={styles.secondary} onClick={reload}>Verifică din nou</button></section>}
     {error && <div role="alert" className={styles.card}><p className={styles.error}>{error}</p><button type="button" className={styles.secondary} onClick={reload}>Încearcă din nou</button></div>}
+    {page?.warnings?.map(warning=><p key={warning} className={styles.notice} role="status">{warning}</p>)}
     {!loading && !unavailable && !error && page && <>
       <ProjectCards projects={page.items} busy={busy} onDuplicate={project => void duplicate(project)} onDelete={setDeleting} />
       {page.total > PAGE_SIZE && <nav className={styles.pagination} aria-label="Paginare proiecte">
@@ -98,7 +101,7 @@ export function ProjectCards({projects, busy, onDuplicate, onDelete}: {projects:
     <div className={styles.cardTop}><h2>{project.name}</h2><span className={styles.badge}>{project.status === "completed" ? "Finalizat" : "În lucru"}</span></div>
     <p>{project.confirmed_configuration.width_mm} × {project.confirmed_configuration.height_mm} × {project.confirmed_configuration.depth_mm} mm</p>
     <p>Actualizat <time dateTime={project.updated_at}>{new Intl.DateTimeFormat("ro-RO", {dateStyle:"medium", timeStyle:"short"}).format(new Date(project.updated_at))}</time></p>
-    <p>{!project.compatible ? "Versiune incompatibilă · recalculare blocată" : project.deviz_complete ? "Prețuri complete pentru deviz" : "Deviz incomplet · lipsesc prețuri"}</p>
+    <p>{!project.compatible ? "Versiune incompatibilă · recalculare blocată" : project.deviz_complete === null ? "Devizul se verifică la deschidere" : project.deviz_complete ? "Prețuri complete pentru deviz" : "Deviz incomplet · lipsesc prețuri"}</p>
     <div className={styles.actions}>
       <Link className={styles.primary} href={projectHref(project.id)}>Deschide<span className="sr-only"> {project.name}</span></Link>
       <button type="button" className={styles.secondary} disabled={busy || !project.compatible} onClick={() => onDuplicate(project)} aria-label={`Duplică ${project.name}`}>Duplică</button>

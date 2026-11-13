@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const isGitHubPages = process.env.GITHUB_PAGES === "true";
+const projectStorage = process.env.NEXT_PUBLIC_PROJECT_STORAGE || "browser";
+if (!["browser", "api"].includes(projectStorage)) throw new Error("NEXT_PUBLIC_PROJECT_STORAGE must be browser or api.");
 const authUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const authKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 if (authUrl || authKey) {

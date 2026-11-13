@@ -4,9 +4,11 @@ Start with the [documentation index](README.md) and [agent handoff](agent-handof
 
 ## Project persistence
 
+The current default frontend mode is `NEXT_PUBLIC_PROJECT_STORAGE=browser`: [browser-project-store.ts](../frontend/src/features/furniture/browser-project-store.ts) saves only validated inputs/identity metadata in localStorage. [project-contract.ts](../frontend/src/features/furniture/project-contract.ts) is the shared DTO/guard contract for both adapters. The existing facade selects browser CRUD/capabilities or the retained API path; calculations/estimates still call FastAPI. No user account or Supabase configuration is required for POC browser saving. Browser history leaves deviz completeness unknown until backend recalculation, never duplicates the engine. The editor restores inputs first and tolerates a temporary estimate failure. See [browser saving](browser-projects.md).
+
 Furniture projects persist validated configuration/pricing inputs with UUID, UTC timestamps, schema/profile/calculation versions and optimistic revisions. Domain-local `project_store.py` supplies explicit local SQLite; `cloud_project_store.py` reuses the same contracts for authenticated Supabase PostgreSQL. Shared `cloud_auth.py` verifies the user's token at Supabase Auth; every cloud query uses that token and an owner filter, with SQL RLS independently enforcing ownership. No admin/service-role key is used. Default CRUD is absent; local SQLite remains loopback-only and disabled on Render. Cloud CRUD is explicitly configured and requires authentication. See [free online setup](free-online-setup.md).
 
-The official browser Supabase SDK manages sessions/refresh and Google OAuth in a popup, preserving the current image flow. Account changes clear private in-memory state. Inputs remain editable before authentication/storage availability; saving waits for both. Derived quantities/estimates are still recalculated after version compatibility checks; images stay temporary. The static-export-compatible editor restores the existing context and calculators. See [project persistence](project-persistence.md) for lifecycle and backups.
+In explicit `api` mode, the retained Supabase SDK manages sessions/refresh and Google OAuth in a popup. It is not initialized in browser mode. API account changes clear private in-memory state; browser mode has no account ownership and people sharing the browser see the same records. In both modes, inputs remain editable, writes wait for valid inputs/available storage, version compatibility is respected and images stay temporary. See [project persistence](project-persistence.md) for backend lifecycle and backups.
 
 ## Manual pricing
 
@@ -53,6 +55,8 @@ The Python package uses a `src/forma` layout. `main.py` creates middleware, capa
 | `PATCH /api/v1/furniture/projects/{id}` | Allowed fields + `expected_revision`; same UUID | Same conditional access |
 | `POST /api/v1/furniture/projects/{id}/duplicate` | Copy inputs, new UUID, draft status | Same conditional access |
 | `DELETE /api/v1/furniture/projects/{id}` | Selected UUID + `expected_revision` query parameter | Same conditional access; frontend confirmation |
+
+This table describes backend HTTP contracts. In default browser mode, frontend project CRUD/capabilities run locally instead; the backend may correctly report server CRUD disabled while browser saving works. Data is never silently moved or used as an error fallback between stores.
 
 Project persistence field names are intentionally different from an estimate request: `confirmed_configuration`, `manual_price_catalog`, `labor_cost` and `markup_percentage`. Reuse the existing mapping/validators rather than passing one DTO unchanged into the other endpoint. Contracts live in [schemas.py](../backend/src/forma/domains/furniture/schemas.py), [pricing.py](../backend/src/forma/domains/furniture/pricing.py) and [projects.py](../backend/src/forma/domains/furniture/projects.py). Cloud identity always comes from the verified user token; there is no client-writable owner field.
 

@@ -17,6 +17,7 @@ All maintained setup, context and feature references live in [docs/](docs/README
 | [Wardrobe engine](docs/wardrobe-engine.md) | Exact POC geometry, material, banding and hardware rules |
 | [Pricing](docs/future-supplier-pricing.md) | Manual RON prices, allowances, Decimal rounding and future supplier boundary |
 | [Persistence](docs/project-persistence.md) | Project lifecycle, SQLite, cloud storage, revisions and backups |
+| [Browser POC saving](docs/browser-projects.md) | Default localStorage mode; no database/auth setup, limits and later switch |
 | [Free online setup](docs/free-online-setup.md) | Owner's Supabase Free / Google OAuth activation steps |
 | [Troubleshooting](docs/troubleshooting.md) | Windows, Git, styling, uploads, auth and deployment failures |
 
@@ -27,7 +28,7 @@ All maintained setup, context and feature references live in [docs/](docs/README
 - Backend: [Render API](https://forma-q8f6.onrender.com), [health endpoint](https://forma-q8f6.onrender.com/api/health).
 - Online database/accounts: Supabase PostgreSQL/Auth; the owner's actual project URL/ref is not recorded yet. See [service directory](docs/services-and-deployment.md).
 
-These links do not establish which commit is live. Cloud support exists in code; Supabase/Google account configuration and real-account verification are owner-managed and were pending at the documentation audit. No paid service or automatic billing activation is authorized.
+These links do not establish which commit is live. POC saving now defaults to **this browser's localStorage**, without an account/database setup. The owner has created a Supabase account but postponed configuration. Cloud/SQLite code remains available for later; no paid service or automatic billing activation is authorized.
 
 ## Quick local start
 
@@ -47,9 +48,9 @@ cd frontend
 npm.cmd run dev
 ```
 
-Open http://localhost:3000. Use `npm` and `.venv/bin/python` on macOS/Linux. Basic calculations work without cloud credentials. Project saving is disabled by default; [INIT](docs/INIT.md) explains explicit local SQLite mode and [online setup](docs/free-online-setup.md) explains private account mode.
+Open http://localhost:3000. Use `npm` and `.venv/bin/python` on macOS/Linux. Browser project saving works by default, including on GitHub Pages, without Supabase setup. `NEXT_PUBLIC_PROJECT_STORAGE=browser` is the default; set `api` later for retained SQLite/cloud storage. Calculations still need FastAPI. See [browser saving](docs/browser-projects.md) for limits and [INIT](docs/INIT.md) for setup.
 
-Images remain temporary. Saved projects persist configuration/pricing inputs and recalculate results when reopened; they do not preserve the original photograph. The real project history/editor is implemented under `/domenii/mobilier/proiecte`; the furniture homepage's recent-project widget remains a static empty state.
+Images remain temporary. Saved projects preserve inputs, not photographs or authoritative totals. Browser projects stay on one browser/device and can be lost when site data is cleared; they do not sync or belong to private accounts. History/editor is `/domenii/mobilier/proiecte`; the homepage's recent-project widget remains static.
 
 ## Engineering rules
 

@@ -39,10 +39,13 @@ Read [INIT](INIT.md) for working-directory-aware commands and [services and depl
 
 ## Saving and authentication
 
-Check `GET /api/v1/furniture/project-capabilities` on the **actual API used by this frontend** before assuming a database failure.
+First check `NEXT_PUBLIC_PROJECT_STORAGE`. Default `browser` uses localStorage without server project CRUD or login; inspect browser storage permissions/quota and [browser saving](browser-projects.md). A disabled backend capability is normal in this mode. In explicit `api` mode, check `GET /api/v1/furniture/project-capabilities` on the actual backend before assuming a database failure.
 
 | Situation | Meaning / action |
 | --- | --- |
+| Projects missing on another device / browser mode | Expected: localStorage is origin/device/profile-specific, with no sync. Existing Supabase code is retained but requires explicit later API mode/setup; no automatic migration occurs. |
+| Browser storage blocked/full | Permit site data/use a normal window or free space intentionally. Failed writes must not report success or overwrite saved data. Never use `localStorage.clear()` as a repair. |
+| Browser history warns about unreadable data | Valid projects remain accessible; corrupt/versioned records are preserved. Do not reset the store or overwrite records to silence the warning. |
 | Name can be typed but Save is disabled | Check name/price validity, confirmed configuration, service capability and login. Editable input does not mean storage has been activated. |
 | Capabilities disabled / endpoint 404 on an old deployment | Cloud may be unconfigured, or the deployed backend predates persistence. Check dashboard deployed SHA and environment, then follow authorized deployment steps. |
 | Default production CRUD returns 404 | Safe default when neither authorized storage mode is enabled; do not expose SQLite publicly to remove this response. |

@@ -24,6 +24,7 @@ test("a refreshed result without temporary state links back to upload", () => {
   const markup = renderToStaticMarkup(React.createElement(WardrobeResult));
   assert.match(markup, /Adaugă din nou schița/);
   assert.match(markup, /href="\/domenii\/mobilier\/proiect-nou"/);
+  assert.match(markup, /href="\/domenii\/mobilier\/proiecte"/);
 });
 
 test("an uploaded image alone cannot trigger a calculation", () => {

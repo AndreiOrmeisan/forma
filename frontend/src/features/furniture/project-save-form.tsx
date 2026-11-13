@@ -8,11 +8,12 @@ import { validateWardrobeDraft } from "./wardrobe-configuration";
 import styles from "./projects.module.css";
 import { useAuth } from "../auth/auth-context";
 import { AccountPanel } from "../auth/account-panel";
+import { browserStorageNotice, getProjectStorageMode } from "../../config/project-storage";
 
 export function ProjectSaveForm({ available }: {available?: boolean}) {
   const { confirmed, draft, pricing, savedProject, markSaved } = useWardrobeProject();
   const {user,loading:authLoading} = useAuth();
-  const [capability, setCapability] = useState<ProjectCapabilities | null>(() => available ? {enabled:true, reason:null} : null);
+  const [capability, setCapability] = useState<ProjectCapabilities | null>(() => available ? {enabled:true, reason:null,storage:getProjectStorageMode() === "browser" ? "browser" : undefined} : null);
   const [name, setName] = useState(savedProject?.name || "");
   const [description, setDescription] = useState(savedProject?.description || "");
   const [status, setStatus] = useState<"draft" | "completed">(savedProject?.status || "draft");
@@ -52,8 +53,9 @@ export function ProjectSaveForm({ available }: {available?: boolean}) {
   }
 
   return <section className={styles.card} aria-labelledby="save-project-title">
-    <div className={styles.sectionHeading}><span className={styles.eyebrow}>{capability?.storage === "local" ? "PROIECT LOCAL" : "PROIECTUL TĂU"}</span><h2 id="save-project-title">{savedProject ? "Salvează modificările" : "Salvează proiectul"}</h2></div>
+    <div className={styles.sectionHeading}><span className={styles.eyebrow}>{capability?.storage === "browser" ? "SALVARE ÎN BROWSER" : capability?.storage === "local" ? "PROIECT LOCAL" : "PROIECTUL TĂU"}</span><h2 id="save-project-title">{savedProject ? "Salvează modificările" : "Salvează proiectul"}</h2></div>
     <p>Salvăm configurația și prețurile. Imaginea originală nu este salvată permanent.</p>
+    {getProjectStorageMode() === "browser" && <p className={styles.notice}>{browserStorageNotice}</p>}
     {!capability && <p role="status">Verificăm disponibilitatea salvării…</p>}
     {capability && !capability.enabled && <div role="status"><p>{capability.reason}</p><button type="button" className={styles.secondary} onClick={() => setCheckAttempt(value => value + 1)}>Verifică din nou</button></div>}
     {needsLogin && <AccountPanel />}

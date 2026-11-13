@@ -4,6 +4,8 @@ Last source audit: 2026-11-13. These are the recorded project addresses and conf
 
 ## Service directory
 
+**Current POC:** `NEXT_PUBLIC_PROJECT_STORAGE=browser` is the default and saves projects on the visitor's browser/device, including GitHub Pages. No database/account configuration is needed. The owner deferred Supabase setup; retained backend stores require an explicit later `api` selection. Calculations still use FastAPI. See [browser saving](browser-projects.md).
+
 | Component | Provider / name | Address or dashboard | Role |
 | --- | --- | --- | --- |
 | Source repository | GitHub, `AndreiOrmeisan/forma` | [Repository](https://github.com/AndreiOrmeisan/forma) | PUBLIC, default branch `main`, verified through GitHub CLI on 2026-11-13. Write/admin access is owner-managed. Git remote confirms this exact username spelling. |
@@ -15,6 +17,7 @@ Last source audit: 2026-11-13. These are the recorded project addresses and conf
 | Online database and accounts | Supabase Free, project selected by owner | [Supabase dashboard](https://supabase.com/dashboard) | PostgreSQL, Auth and per-user row-level security. Actual project URL/ref is not recorded yet. |
 | Login provider | Google OAuth via Supabase | [Google Auth Platform](https://console.cloud.google.com/auth/overview) | OAuth credentials/consent setup; not an AI or paid API integration. |
 | Optional laptop database | Python SQLite | `backend/.local/forma.db` under the documented startup directory | Local development only; not shared online or automatically imported. |
+| Default POC project store | Browser localStorage | Site origin/browser profile on the current device | Inputs only, no account/sync/photos; can be lost when site data is cleared. |
 
 There is no Vercel deployment, separate cloud image bucket, supplier service, paid AI endpoint or application-owned SMTP service in the current implementation. Images are not permanently saved. The database is not hosted on GitHub Pages and online project data is not stored on Render's ephemeral disk.
 
@@ -27,6 +30,7 @@ All flags are case-sensitive string comparisons; use `true` exactly where enable
 | Variable | Used by / configured where | Meaning and default |
 | --- | --- | --- |
 | `NEXT_PUBLIC_API_BASE_URL` | Frontend `.env.local`; GitHub Actions repository variable | API origin. Local fallback `http://localhost:8000`; hosted value `https://forma-q8f6.onrender.com`. |
+| `NEXT_PUBLIC_PROJECT_STORAGE` | Frontend `.env.local`; GitHub Actions repository variable | `browser` default/unset: localStorage CRUD, no auth/DB. `api`: retained backend capabilities/SQLite/cloud. Rebuild/restart after switching; no automatic migration/fallback. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Frontend `.env.local`; GitHub Actions repository variable | Owner's HTTPS Supabase project URL. Optional; must be paired with its public key. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Same frontend locations | Publishable key or legacy `anon` key only. Public by design, protected by user auth/RLS. Secret/service-role keys are forbidden. |
 | `GITHUB_PAGES` | Workflow export step | `true` enables static export. Leave unset for normal local dev/server builds. |
@@ -90,6 +94,8 @@ The `0.0.0.0` command is for the hosted service, not an unauthenticated local SQ
 Render Auto-Deploy and build filters depend on dashboard settings; the repository does not prove whether they are enabled. Check before asserting a push deployed the backend. Runtime variables are configured in Render Environment, not GitHub Actions. Restart/redeploy after configuration changes as required by that service. Check deployed commit and logs; health `{"status":"ok"}` alone does not prove the latest feature commit is present.
 
 ## Supabase and Google activation
+
+This activation is deferred, not required for the browser POC. When explicitly requested later, select `NEXT_PUBLIC_PROJECT_STORAGE=api` in the frontend and rebuild; otherwise browser mode intentionally ignores backend project capabilities and does not initialize Supabase Auth. Do not remove backend safeguards or upload browser data automatically.
 
 Follow [free online setup](free-online-setup.md) in order: create/select Free project → apply SQL migration → configure Google OAuth + exact redirect URLs → set Render variables → set GitHub variables → authorize backend/frontend deployment → verify with two real accounts and another device.
 

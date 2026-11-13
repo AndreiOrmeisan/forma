@@ -92,11 +92,11 @@ Use `npm.cmd` in Windows PowerShell to avoid `npm.ps1` execution-policy issues. 
 
 | Mode | Setup | Project saving |
 | --- | --- | --- |
-| Basic local workflow | No environment files required; start both applications | Disabled by default; upload, mock review, configuration and cost calculations work |
-| Local SQLite | Explicit local backend variables below | Saves on that laptop, survives backend restart; does not sync to other devices |
-| Private online account | Owner's Supabase/Google setup + frontend/backend variables | Saves to the account in PostgreSQL; use the same account on other devices |
+| Browser POC (default) | No database/account setup; start both applications | localStorage in this browser/device, including GitHub Pages; no sync/permanent photograph |
+| Local SQLite (retained) | Frontend `NEXT_PUBLIC_PROJECT_STORAGE=api` + explicit local backend variables below | Saves on that laptop, survives backend restart; no device sync |
+| Private online account (deferred) | Frontend mode `api` + Supabase/Google setup + backend flags | Account in PostgreSQL; same account on other devices |
 
-Do not enable cloud mode before its account, SQL policies and OAuth settings are ready. See [free online setup](free-online-setup.md). Local SQLite is not a workaround for exposing unauthenticated storage publicly.
+The owner deferred Supabase configuration for the POC. Use [browser saving](browser-projects.md) now; no account is needed. Calculations still need FastAPI. Keep cloud code for later and do not enable it before auth/RLS setup. SQLite is not a workaround for exposing unauthenticated storage publicly.
 
 ## 5. Start local development in two terminals
 
@@ -122,13 +122,14 @@ Optional frontend settings go in `frontend/.env.local`, which is ignored by Git:
 
 ```dotenv
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+NEXT_PUBLIC_PROJECT_STORAGE=browser
 ```
 
 Do not overwrite an existing environment file. Normal local dev does not need `GITHUB_PAGES` or `NEXT_PUBLIC_BASE_PATH`. Supabase public URL/key must be set together when using online auth. Never copy private server credentials into a frontend file.
 
 ### Enable local SQLite saving
 
-Stop Terminal A's server, set these variables in that backend terminal, and restart it:
+First set `NEXT_PUBLIC_PROJECT_STORAGE=api` in `frontend/.env.local` and restart the frontend; otherwise it continues using localStorage. Stop Terminal A's server, set these variables in that backend terminal, and restart it:
 
 ```powershell
 $env:FORMA_ENV = "local"
@@ -167,9 +168,9 @@ npm.cmd test
 npm.cmd run build
 ```
 
-Run frontend type generation and build sequentially: they both write generated `.next` files. Backend and frontend tests may run independently. In the audited source, 156 backend tests and 48 frontend tests passed; counts can change with later work. External Supabase tests are mocked, not proof that live RLS/OAuth has been activated.
+Run frontend type generation and build sequentially: both write generated `.next` files. The current POC verification has 156 backend tests and 59 frontend tests passing; counts may change. Storage tests simulate a browser and cover CRUD/reload, blocked/full/corrupt data and API-mode isolation. External Supabase tests are mocked, not proof of live RLS/OAuth activation. The HTTP capability endpoint above reports backend storage, not the separate default browser adapter.
 
-Manual smoke check: domain dashboard → furniture → upload JPEG/PNG/WebP (<=10 MB) → mock interpretation → edit dimensions / 2D view → confirm → cutting list / ABS / hardware → manual prices → generate deviz. In SQLite or configured cloud mode also save → list → refresh/open → edit → confirm/recalculate → save to the same UUID → duplicate → delete only the selected copy after confirmation.
+Manual smoke check: dashboard → furniture → upload JPEG/PNG/WebP (<=10 MB) → mock review → dimensions / 2D → confirm → materials / ABS / hardware → prices / deviz → browser save → list → refresh/open → edit → confirm/recalculate → save same UUID → duplicate → confirmed deletion of only the copy. API mode adds separate SQLite/cloud checks when selected.
 
 Do not report screenshots, mobile rendering, real Google sign-in or multi-device sync as verified unless you actually exercised them. See [agent handoff](agent-handoff.md) for current verification limits.
 
@@ -181,7 +182,7 @@ Use the same Node 24.x and tested Python 3.12 line. From the repository root:
 cd backend
 python3.12 -m venv .venv
 .venv/bin/python -m pip install -e '.[dev]'
-FORMA_ENV=local ENABLE_LOCAL_PROJECTS=true ENABLE_CLOUD_PROJECTS=false DATABASE_URL=sqlite:///./.local/forma.db .venv/bin/python -m uvicorn forma.main:app --reload --host 127.0.0.1 --port 8000
+.venv/bin/python -m uvicorn forma.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 In a second terminal:
@@ -192,7 +193,7 @@ npm ci
 npm run dev
 ```
 
-Use `.venv/bin/python -m pytest -q` for backend tests and `npm` for all frontend scripts. The macOS/Linux commands are equivalent guidance; they were not executed on the audited Windows laptop. OS packages providing Python's `venv` module may be required on some Linux distributions.
+The commands above use default browser storage. For optional SQLite, select frontend `api` and set the equivalent local backend flags described above. Use `.venv/bin/python -m pytest -q` for backend tests and `npm` for frontend scripts. These macOS/Linux equivalents were not executed on the audited Windows laptop. Some Linux distributions require an OS package providing Python's `venv` module.
 
 ## 8. Before your first code change
 

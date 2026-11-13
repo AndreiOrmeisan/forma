@@ -1,51 +1,24 @@
-import { isWardrobeConfiguration, type WardrobeConfiguration } from "./wardrobe-configuration";
+import type { WardrobeConfiguration } from "./wardrobe-configuration";
 import { initialPricing, priceItems, pricingError, pricingPayload, type PricingDraft } from "./wardrobe-pricing";
 import { furnitureRoutes } from "../../config/domains";
 import { projectAccessToken } from "../auth/supabase-client";
+import { getProjectStorageMode } from "../../config/project-storage";
+import { browserProjectCapabilities, browserProjectRequest } from "./browser-project-store";
 
-export type CatalogEntry = ReturnType<typeof pricingPayload>["price_catalog"][number];
-export type ProjectInput = {
-  domain: "furniture"; name: string; description: string | null; status: "draft" | "completed";
-  confirmed_configuration: WardrobeConfiguration; manual_price_catalog: CatalogEntry[];
-  waste_allowances: {pal: string; hdf: string; abs: string}; labor_cost: string; markup_percentage: string;
-  schema_version: number; construction_profile_id: string; calculation_version: string;
-};
-export type FurnitureProject = ProjectInput & {
-  id: string; created_at: string; updated_at: string; revision: number;
-  compatible: boolean; deviz_complete: boolean | null; warnings: string[];
-};
-export type ProjectPage = {items: FurnitureProject[]; total: number; limit: number; offset: number};
-export type ProjectCapabilities = {enabled: boolean; reason: string | null; requires_auth?: boolean; storage?: "cloud" | "local" | "disabled"};
-export const projectUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { isProject, projectUuid, type FurnitureProject, type ProjectInput, type ProjectCapabilities } from "./project-contract";
+export { isProject, projectUuid } from "./project-contract";
+export type { CatalogEntry, ProjectInput, FurnitureProject, ProjectPage, ProjectCapabilities } from "./project-contract";
 export const projectHref = (id: string) => `${furnitureRoutes.projects}/deschide?id=${encodeURIComponent(id)}`;
-
-export function isProject(value: unknown): value is FurnitureProject {
-  if (!value || typeof value !== "object") return false;
-  const v = value as FurnitureProject;
-  const decimal = (value: unknown) => typeof value === "string" && /^\d+(?:\.\d+)?$/.test(value);
-  return typeof v.id === "string" && projectUuid.test(v.id) && typeof v.name === "string" &&
-    (v.description === null || typeof v.description === "string") && v.domain === "furniture" &&
-    ["draft", "completed"].includes(v.status) && isWardrobeConfiguration(v.confirmed_configuration) &&
-    Number.isSafeInteger(v.revision) && v.revision > 0 && Number.isSafeInteger(v.schema_version) &&
-    typeof v.construction_profile_id === "string" && typeof v.calculation_version === "string" &&
-    typeof v.compatible === "boolean" && (!v.compatible || (v.schema_version === 1 && v.construction_profile_id === "forma-wardrobe-poc-v1" && v.calculation_version === "wardrobe-v1")) &&
-    (typeof v.deviz_complete === "boolean" || v.deviz_complete === null) &&
-    [v.created_at, v.updated_at].every(date => typeof date === "string" && Number.isFinite(Date.parse(date))) &&
-    Array.isArray(v.warnings) && v.warnings.every(warning => typeof warning === "string") &&
-    decimal(v.labor_cost) && decimal(v.markup_percentage) && !!v.waste_allowances &&
-    [v.waste_allowances.pal, v.waste_allowances.hdf, v.waste_allowances.abs].every(decimal) &&
-    Array.isArray(v.manual_price_catalog) && v.manual_price_catalog.every(entry => entry &&
-      priceItems.some(([code, , unit]) => code === entry.item_code && unit === entry.unit) &&
-      typeof entry.item_name === "string" && decimal(entry.unit_price_ron) && entry.currency === "RON" &&
-      entry.source_type === "manual" && typeof entry.source_name === "string" &&
-      typeof entry.updated_at === "string" && Number.isFinite(Date.parse(entry.updated_at)));
-}
 
 export class ProjectApiError extends Error {
   constructor(message: string, public status: number) { super(message); }
 }
 
 export async function projectRequest(path: string, options: RequestInit = {}): Promise<unknown> {
+  if (getProjectStorageMode() === "browser") {
+    if (path === "project-capabilities") return browserProjectCapabilities();
+    if (/^projects(?:[/?]|$)/.test(path)) return browserProjectRequest(path,options);
+  }
   const base = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000").replace(/\/$/, "");
   let response: Response;
   const token = await projectAccessToken();
@@ -73,6 +46,7 @@ export async function projectRequest(path: string, options: RequestInit = {}): P
 }
 
 export async function projectCapabilities(): Promise<ProjectCapabilities> {
+  if (getProjectStorageMode() === "browser") return browserProjectCapabilities();
   try {
     const value = await projectRequest("project-capabilities") as ProjectCapabilities;
     if (typeof value?.enabled === "boolean" && (value.reason === null || typeof value.reason === "string")) return {
@@ -85,8 +59,9 @@ export async function projectCapabilities(): Promise<ProjectCapabilities> {
 
 export async function getProject(id: string): Promise<FurnitureProject> {
   if (!projectUuid.test(id)) throw new ProjectApiError("Identificatorul proiectului este invalid.", 404);
-  const value = await projectRequest(`projects/${id}`);
-  if (!isProject(value) || value.id !== id) throw new ProjectApiError("Proiectul primit este invalid sau nu poate fi citit în această versiune.", 422);
+  const normalized = id.toLowerCase();
+  const value = await projectRequest(`projects/${normalized}`);
+  if (!isProject(value) || value.id !== normalized) throw new ProjectApiError("Proiectul primit este invalid sau nu poate fi citit în această versiune.", 422);
   return value;
 }
 

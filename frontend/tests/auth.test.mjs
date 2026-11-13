@@ -4,6 +4,8 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { loadTypeScriptModule } from "./helpers/load-typescript.mjs";
 
+process.env.NEXT_PUBLIC_PROJECT_STORAGE = "api";
+
 test("project requests send the current session bearer token and no owner header", async context => {
   let request;
   const {projectRequest} = loadTypeScriptModule("src/features/furniture/project-api.ts", {

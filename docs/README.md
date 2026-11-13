@@ -17,6 +17,7 @@ This directory is the shared context pack for developers and coding agents. Read
 | [Wardrobe engine](wardrobe-engine.md) | Input ranges, construction profile, geometry, banding and provisional hardware rules |
 | [Pricing and future suppliers](future-supplier-pricing.md) | Manual price catalog, Decimal rounding, allowances, markup and provider boundary |
 | [Project persistence](project-persistence.md) | Local SQLite, project schemas/revisions, CRUD, historical compatibility and backups |
+| [Browser project saving](browser-projects.md) | Current default POC mode, localStorage limits, integrity and later API switch |
 | [Free online setup](free-online-setup.md) | Owner's Supabase Free / Google OAuth setup, SQL migration and activation checks |
 | [Troubleshooting](troubleshooting.md) | Common Windows, Next.js, Render, auth and project-saving failures |
 

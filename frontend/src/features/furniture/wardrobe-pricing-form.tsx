@@ -11,7 +11,9 @@ import { invalidPricing } from "./project-api";
 export function WardrobePricingForm({ configuration, initialEstimate }: { configuration: WardrobeConfiguration; initialEstimate?: Estimate }) {
   const { pricing, updatePricing } = useWardrobeProject();
   const signature = JSON.stringify({ configuration, pricing });
-  const [result, setResult] = useState<{ signature: string; estimate: Estimate } | null>(() => initialEstimate ? {signature, estimate: initialEstimate} : null);
+  const [initialSignature] = useState(signature);
+  const [generatedResult, setResult] = useState<{ signature: string; estimate: Estimate } | null>(null);
+  const result = generatedResult || (initialEstimate && initialSignature === signature ? {signature,estimate:initialEstimate} : null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const request = useRef<AbortController | null>(null);

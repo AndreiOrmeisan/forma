@@ -1,5 +1,7 @@
 # Free online accounts and private projects
 
+**Deferred, optional setup:** the current POC uses [browser localStorage saving](browser-projects.md) by default. No database or OAuth configuration is needed now. The owner has created only a Supabase account and chosen to postpone the steps below. Keep this code/guide for later; when ready select `NEXT_PUBLIC_PROJECT_STORAGE=api` and complete every cloud security/setup step before enabling online saving. Switching does not automatically upload existing browser projects.
+
 Read the [documentation index](README.md), [INIT](INIT.md) and [service directory](services-and-deployment.md) for the wider project context. This is an activation guide; the owner's actual Supabase project URL/ref and completed setup must be confirmed, not inferred from source files.
 
 The app supports Supabase Auth (Google OAuth) and PostgreSQL on the Supabase **Free** plan. GitHub Pages still hosts the frontend and the existing Render backend still calculates quantities/costs. No billing API, paid subscription, paid AI, email-sending service or automatic upgrade is implemented.
@@ -50,6 +52,7 @@ In repository **Settings → Secrets and variables → Actions → Variables**, 
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_<your-public-key>
 NEXT_PUBLIC_API_BASE_URL=https://forma-q8f6.onrender.com
+NEXT_PUBLIC_PROJECT_STORAGE=api
 ```
 
 The workflow injects these public values into the static build. Publish/rebuild the frontend only after configuring them. No secret/service-role key belongs here. CORS origin excludes the `/forma` path; the OAuth redirect URL includes it.

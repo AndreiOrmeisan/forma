@@ -4,13 +4,15 @@ For the complete laptop setup see [INIT](INIT.md); for actual service addresses 
 
 ## Online account mode
 
+**POC default is browser localStorage**, not a database; Supabase setup is deferred by the owner. See [browser saving](browser-projects.md) for its limitations and the `NEXT_PUBLIC_PROJECT_STORAGE=browser|api` switch. All SQLite/cloud code below is retained and selected by the frontend only in `api` mode. Server project CRUD stays disabled by default, independently of working browser saving.
+
 Private online projects are now supported through Supabase Auth (Google OAuth) and PostgreSQL with row-level ownership policies. This is an explicitly configured alternative to local SQLite, not anonymous public access. See [free online setup](free-online-setup.md) for the Free-plan setup, SQL migration, OAuth dashboard settings, Render/GitHub variables and external verification steps. No cloud account/resource is provisioned automatically. Local projects are not automatically imported.
 
 ## Scope and deployment boundary
 
 SQLite saves wardrobe configuration and manual pricing inputs, not photographs or derived totals. No image blobs, object URLs, temporary image paths or HTML deviz are persisted. Existing anonymous mock, quantity and pricing endpoints remain available.
 
-**Project CRUD remains disabled by default.** Local SQLite requires both `FORMA_ENV=local` and `ENABLE_LOCAL_PROJECTS=true`; a Render runtime cannot enable unauthenticated SQLite CRUD. Cloud CRUD requires `ENABLE_CLOUD_PROJECTS=true`, a valid HTTPS Supabase URL/public key, and a verified user bearer token on every request. No SQLite database is initialized in cloud/disabled mode. The public read-only `GET /api/v1/furniture/project-capabilities` indicates mode and login requirements; it is not an authorization token.
+**Backend HTTP project CRUD remains disabled by default.** Browser POC CRUD is independent and works without it. Local SQLite requires both `FORMA_ENV=local` and `ENABLE_LOCAL_PROJECTS=true`; Render cannot enable unauthenticated SQLite CRUD. Cloud CRUD requires `ENABLE_CLOUD_PROJECTS=true`, valid Supabase configuration and a verified user token. No SQLite database is initialized in cloud/disabled mode. The public HTTP capability endpoint reports backend mode/login requirements, not browser storage availability, and is not an authorization token.
 
 Run local development bound to `127.0.0.1`, never through a public tunnel or a public reverse proxy. Local routes additionally require a direct loopback peer, a loopback Host, and no non-loopback Origin. Forwarding headers and custom "development" headers are not trusted. CORS and hidden buttons are not access control. Environment switches are operator configuration, not authentication. Never enable these switches on another publicly hosted service either.
 
@@ -30,7 +32,7 @@ $env:DATABASE_URL = "sqlite:///./.local/forma.db"
 
 The default file URL resolves relative to the backend process working directory. For an absolute Windows path use `sqlite:///C:/path/to/forma-data/forma.db`. Only file-based SQLite URLs are supported. The directory is created at startup. `.local/`, database files and journal/WAL companions are ignored by Git. No new Python dependency is required; SQLite uses the Python standard library. Environment files are templates; the commands above explicitly set process variables.
 
-Start `frontend/` with `npm run dev` and `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`. Use a local browser origin. GitHub Pages targets the public backend; online saving there is available only after its cloud mode, auth and RLS configuration/deployment are complete. Otherwise it remains disabled. To disable local SQLite, remove its switches or set `FORMA_ENV=production` and restart the backend; cloud mode has its own explicit switch.
+For SQLite, start `frontend/` with `npm run dev`, `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000` and `NEXT_PUBLIC_PROJECT_STORAGE=api`. Use a local browser origin. The default browser mode instead saves locally on GitHub Pages without backend CRUD. Private online account saving is optional later and requires cloud auth/RLS setup. To disable SQLite, remove its backend switches or set `FORMA_ENV=production`; cloud mode has its own switch.
 
 ## Lifecycle and API
 

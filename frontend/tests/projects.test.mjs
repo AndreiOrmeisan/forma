@@ -5,6 +5,8 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { loadTypeScriptModule } from "./helpers/load-typescript.mjs";
 
+process.env.NEXT_PUBLIC_PROJECT_STORAGE = "api";
+
 const fixture = JSON.parse(readFileSync(new URL("./fixtures/wardrobe-project.json", import.meta.url), "utf8"));
 const api = loadTypeScriptModule("src/features/furniture/project-api.ts");
 const {initialPricing} = loadTypeScriptModule("src/features/furniture/wardrobe-pricing.ts");

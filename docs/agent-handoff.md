@@ -10,6 +10,8 @@ Use the established Minimal Premium design: background `#F8F7F4`, white surface,
 
 ## Implemented in source
 
+**Latest owner decision:** postpone Supabase/database configuration during the POC. Only a Supabase account was created. Default `NEXT_PUBLIC_PROJECT_STORAGE=browser` enables localStorage save/history/edit/duplicate/delete on localhost and GitHub Pages with no login. Preserve all API/SQLite/cloud code for later `api` mode; do not resume external setup unless requested. Browser data is device/profile/origin-specific, not private per-account or synced, and may be lost when cleared. See [browser saving](browser-projects.md).
+
 - Domain dashboard; furniture homepage; persisted Simplu/Profesional mode (`forma-mode`).
 - Camera/gallery image selection; JPEG/PNG/WebP <=10 MB; content/type/decoding validation, object-URL cleanup and temporary preview.
 - Fixed, explicitly labeled mock interpretation; editable validated dimensions/door/shelf counts; confirmation and refresh recovery.
@@ -22,7 +24,7 @@ Use the established Minimal Premium design: background `#F8F7F4`, white surface,
 
 ## External activation / release state
 
-The owner is handling Supabase/Google account setup. Its actual Supabase project URL/ref and completed dashboard configuration are **not recorded in this repository** at the audit. Do not invent them or assume setup is finished. Real Google login, live database RLS and multi-device sync still require owner configuration and real-account verification.
+The owner created a Supabase account only and then deferred configuration. The current POC does not need it. Actual project URL/ref and dashboard setup are not recorded; do not invent them or activate them automatically. Future Google login, RLS and multi-device sync still need explicit API-mode configuration and real-account verification.
 
 Feature-reference commits are `fea950a` (persistence/history) and `115da6d` (cloud account preparation and editable names). At the start of this documentation task they existed locally ahead of the tracked remote. These are historical source references, not instructions to reset/checkout/cherry-pick or a permanent statement about the remote. Run `git status --short --branch`, inspect current log/remote and check deployed SHAs before continuing. Do not push without explicit user permission.
 
@@ -37,8 +39,8 @@ GitHub CLI metadata confirmed repository visibility **PUBLIC** and default branc
 5. Missing price != explicit zero. Missing required prices produce an incomplete deviz and no final selling price.
 6. Keep original mock response, editable draft, confirmed configuration and pricing separate. Never store image blobs in localStorage or a database.
 7. Cloud project ownership comes from verified Supabase Auth, never an owner header/body field. Use public publishable/anon keys + the user token; never administrative/secret/service-role keys.
-8. Keep all list/read/update/duplicate/delete operations owner-scoped. RLS must also protect direct database API access. CORS and hidden buttons are not authorization.
-9. Default project CRUD stays absent. Local SQLite requires explicit local flags, loopback access and no Render runtime. Cloud mode requires configured auth and never falls back to public SQLite after failure.
+8. Keep all cloud list/read/update/duplicate/delete operations owner-scoped. RLS also protects direct database API access; CORS/hidden buttons are not authorization. Browser POC data is shared by people using that browser profile, not account-private.
+9. Default backend project CRUD stays absent while default frontend browser CRUD works locally. SQLite requires explicit local flags, loopback and no Render runtime. API mode requires selected storage/auth and never silently falls back to browser or public SQLite.
 10. Preserve project UUID on edit, revision checks on update/delete, explicit deletion confirmation and historical profile/schema compatibility warnings. No silent historical recalculation under new rules.
 
 ## Where to work
@@ -55,6 +57,7 @@ GitHub CLI metadata confirmed repository visibility **PUBLIC** and default branc
 | API composition/config | `backend/src/forma/main.py`, `config.py`, `api/` |
 | Deterministic rules / pricing | `backend/src/forma/domains/furniture/` |
 | Local/cloud project stores | `project_store.py`, `cloud_project_store.py`, `projects.py` |
+| Default browser projects | `frontend/src/features/furniture/browser-project-store.ts`, `project-contract.ts`, `frontend/src/config/project-storage.ts` |
 | Verified cloud identity | `backend/src/forma/shared/cloud_auth.py` |
 | RLS / PostgreSQL schema | `backend/migrations/001_cloud_projects.sql` |
 | Automated tests | `backend/tests/`, `frontend/tests/`; frontend fixtures are test-only data |
@@ -75,8 +78,8 @@ Paths abbreviated in the table after the frontend entries are within their state
 
 ## Verification baseline and next checks
 
-At the last code verification before this documentation task, 156 backend tests and 48 frontend tests passed, alongside ESLint, TypeScript, production build and Pages export. Production dependency audit reported zero findings. Pre-existing Node module-type and Starlette TestClient warnings were present; do not confuse them with a failing test. Re-run relevant checks after code changes instead of treating this snapshot as a permanent guarantee.
+Current POC storage verification has 156 backend tests and 59 frontend tests passing, plus lint/TypeScript, production build and default-browser Pages export. Storage tests simulate reload, CRUD/revisions, blocked/full/corrupt data, deferred-backend recovery and API isolation; they are not screenshots or real multi-device sync. Re-run relevant checks after source changes rather than treating this snapshot as a guarantee. Existing Node module-type and Starlette TestClient warnings are not failing tests.
 
 Backend cloud tests use fake Auth/PostgREST responses. They exercise API ownership/revision behavior but do not execute the SQL policies on a real Supabase instance. Browser automation was unavailable in the last implementation sessions; mobile/desktop screenshots, actual Google OAuth and multi-device cloud behavior were not visually verified. A new agent should use browser tooling if now available and state what it actually observed.
 
-For the current activation work, use [free online setup](free-online-setup.md): apply SQL, configure Google/provider redirect URLs, set the separate Render/GitHub variables, authorize deployments, then test with two real users and a second device. Do not deploy unauthenticated project storage or upgrade a plan to work around setup errors.
+For current POC work use [browser saving](browser-projects.md), without Supabase setup. Only if requested later, follow [free online setup](free-online-setup.md), select frontend `api` mode, configure auth/RLS and both deployments, then test two real users and a second device. No automatic upload/migration, unauthenticated public database or paid upgrade.
