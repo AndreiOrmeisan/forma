@@ -18,6 +18,7 @@ This directory is the shared context pack for developers and coding agents. Read
 | [Pricing and future suppliers](future-supplier-pricing.md) | Manual price catalog, Decimal rounding, allowances, markup and provider boundary |
 | [Project persistence](project-persistence.md) | Local SQLite, project schemas/revisions, CRUD, historical compatibility and backups |
 | [Browser project saving](browser-projects.md) | Current default POC mode, localStorage limits, integrity and later API switch |
+| [Backup and recovery](backup-and-recovery.md) | Full local JSON export, restore preview/conflicts, rollback journal and corruption recovery |
 | [Supplier catalog](supplier-catalog.md) | Local supplier CRUD, reusable preferred prices, project snapshots and JSON backup |
 | [PDF export](pdf-export.md) | Local quotation/workshop PDFs, company profile/logo, privacy boundaries and sample QA |
 | [Workshop readiness audit](audits/sprint-13-workshop-readiness.md) | Original WR findings and Sprint 14A draft-protection resolution/evidence |

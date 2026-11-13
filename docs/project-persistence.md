@@ -59,6 +59,8 @@ Project JSON has independent `schema_version=1`, `construction_profile_id=forma-
 
 ## Transactions, backups and future production
 
+Sprint 14B adds a separate **browser-local** full backup/restore workflow for project envelopes, furniture catalog and company profile at `/setari/backup-si-restaurare`. It preserves historical inputs/snapshots, skips merge conflicts, requires explicit replacement, and stages a rollback journal. It does not back up server SQLite/cloud stores or change their flags. See [backup and recovery](backup-and-recovery.md) for byte limits, revision rebasing, corruption recovery and non-transactional localStorage limitations.
+
 Each local SQLite operation uses its own connection and explicit transaction, parameterized SQL, a five-second busy timeout and rollback on failure. Optimistic revisions prevent lost updates across sessions. This store is intended for local usage, not public multi-tenant scaling. Cloud mode instead uses user-scoped PostgREST requests, PostgreSQL row writes and conditional revision filters. Neither mode implements automatic backup or schema downgrade.
 
 Stop the local backend before copying the database file to a secure backup location. Alternatively use Python's SQLite backup API for a consistent live backup; copying an active database file without its journal is unsafe. Test restoring a copy before relying on a backup. Keep backups outside Git and protect them as project data.

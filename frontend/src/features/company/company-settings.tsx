@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { emptyCompanyProfile, loadCompanyProfile, readCompanyLogo, saveCompanyProfile, type CompanyProfile } from "./company-profile";
 import styles from "../catalog/catalog.module.css";
+import { RecoveryLink } from "../storage/recovery-link";
 
 const fields: [keyof Omit<CompanyProfile,"logo"|"validity_days">,string,number][]=[
   ["display_name","Nume firmă sau atelier",160],["contact_person","Persoană de contact · opțional",120],
@@ -21,6 +22,7 @@ export function CompanySettings(){
   return <main id="main-content" className={styles.page} style={{maxWidth:850,paddingLeft:24,paddingRight:24}}>
     <Link className={styles.link} href="/">← Domenii</Link><div className={styles.heading}><div><h1>Datele firmei</h1><p>Un profil reutilizabil pentru documentele tale FORMA.</p></div></div>
     <p className={styles.notice}>Salvare doar în acest browser, fără sincronizare. Datele și logo-ul nu sunt trimise către servicii de generare PDF. Verifică informațiile înainte de a trimite documentele unui client.</p>
+    <p><RecoveryLink/></p>
     <form className={styles.form} noValidate onSubmit={e=>{e.preventDefault();if(ready && !busy)save();}}><fieldset disabled={!ready || busy} style={{border:0,padding:0,margin:0}}><div className={styles.fields}>
       {fields.map(([key,label,max])=><label key={key} className={styles.field}>{label}<input value={profile[key]} maxLength={max} required={key==="display_name"} type={key==="email" ? "email":key==="website" ? "url":key==="phone" ? "tel":"text"} onChange={e=>{setProfile(p=>({...p,[key]:e.target.value}));setNotice("");}}/></label>)}
       <label className={styles.field}>Valabilitate implicită · zile, opțional<input inputMode="numeric" maxLength={3} value={validity} placeholder="Necompletată" onChange={e=>{setValidity(e.target.value);setNotice("");}}/></label>

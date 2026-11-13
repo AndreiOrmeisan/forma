@@ -37,7 +37,7 @@ Regression tests in `frontend/tests/unsaved-project.test.mjs` exercise component
 - People sharing one browser profile can see the same projects; there is no per-user privacy in this mode.
 - Browser quotas vary. Blocked/quota-exceeded writes show an error, never a false success or a replacement of the previous record.
 - A shared UUID URL does not transfer the project to another device.
-- Project export/import and automatic migration to SQLite/Supabase are not implemented. The separate supplier catalog has its own JSON backup, which excludes projects. Switching modes must not delete local records.
+- Saved browser projects can be exported/restored through [full backup and recovery](backup-and-recovery.md) at `/setari/backup-si-restaurare`. Sketches/unsaved drafts/server projects are excluded. Automatic migration to SQLite/Supabase is not implemented; switching modes must not delete local records. Catalog-only backups still exclude projects.
 
 ## Implementation and integrity
 

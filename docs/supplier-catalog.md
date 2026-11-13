@@ -48,7 +48,7 @@ The existing backend `PriceEntry` remains a manual user-input contract, with sup
 
 ## Manual backup
 
-Export downloads `forma-mobilier-catalog.json`, a versioned `forma-supplier-catalog` JSON containing suppliers/offers only, with an export timestamp and `domain_id: furniture`. Cross-domain imports are rejected. Previous backups without a domain are accepted only as furniture backups. Import is limited to 2 MB, 500 suppliers and 3,000 offers. Strict shape/version/IDs/references/units/prices/URLs/preferences are checked before any write; unknown fields such as images are rejected.
+Export downloads `forma-mobilier-catalog.json`, a versioned `forma-supplier-catalog` JSON containing suppliers/offers only, with an export timestamp and `domain_id: furniture`. Cross-domain imports are rejected. Previous backups without a domain are accepted only as furniture backups. Sprint 14B applies one 16 MiB UTF-8-byte limit to compact export/import, retaining 500 suppliers and 3,000 offers. Oversized exports fail without truncation. Strict shape/version/IDs/references/units/prices/URLs/preferences are checked before any write; unknown fields such as images are rejected. Full backups and corrupted catalog recovery are separately available at [Backup and recovery](backup-and-recovery.md), including when normal catalog loading fails.
 
 The user previews counts and warnings and confirms one mode:
 

@@ -30,6 +30,8 @@ The current POC is exclusively focused on furniture and particleboard (PAL) ward
 
 ## Conventions
 
+- Local backup/recovery: `frontend/src/features/storage/`, route `/setari/backup-si-restaurare`. Reuse existing DTO/repository validators; do not bypass pending-journal guards, import unvalidated values, auto-overwrite conflicts or delete unknown-version data. Preserve IDs/snapshots/historical inputs, explicit selected-section replacement and rollback artifacts. Catalog/full JSON limits use UTF-8 bytes (16/32 MiB); no images/drafts/auth/server projects. Read `docs/backup-and-recovery.md` for revision rebasing and actual non-transactional guarantees.
+
 - PDF export: `frontend/src/features/pdf/`, company profile in `features/company/`, settings `/setari/date-firma`. Generate locally with jsPDF/AutoTable and bundled OFL Lato TTFs. Quotation DTOs must allowlist the final complete amount/configuration and exclude purchase prices, suppliers, labor and markup. Workshop uses existing calculation outputs and shared preview geometry. No PDF services, VAT assumptions, fiscal invoicing, DB activation or hidden catalog refresh. Keep font asset URLs compatible with the Pages base path. See `docs/pdf-export.md`; generate/inspect actual synthetic sample PDFs after template changes.
 
 - Domain ownership: suppliers, offers and future customers belong inside `/domenii/<slug>/`, not global settings. Catalog browser keys/locks/revisions and JSON backups are domain-scoped. Only furniture may read the previous unscoped catalog as a non-destructive compatibility fallback; other domains must never inherit it. Preserve existing furniture data. Customer CRUD is not implemented yet. Domain key separation does not enable new domain calculators or their item schemas.

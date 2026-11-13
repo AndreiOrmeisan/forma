@@ -4,6 +4,8 @@ Source/context snapshot: 2026-11-13. Read [INIT](INIT.md) for installation, then
 
 ## Product and communication
 
+Sprint 14B adds `/setari/backup-si-restaurare` for local projects/catalog/company export and selected-section restore, including raw corruption recovery and an interruption journal. Catalog file policy is now 16 MiB UTF-8, full backup 32 MiB. Read [backup and recovery](backup-and-recovery.md) before changing repository guards/journal handling; preserve original IDs/snapshots and explicit replacement confirmation. No images/drafts/auth/server projects or DB activation. Close stale tabs and reopen editors after restore; native isolated-browser E2E remains unverified.
+
 Sprint 14A: root `ProjectWorkspace` now owns the temporary sketch/furniture state, independently of route caching. Invalid image candidates never clear existing work. Central dirty detection and an accessible save/stay/discard dialog protect internal links/history; native unload warnings cover reload/close within browser limitations. Supplier links from editing open separately. No draft snapshot, database flag or calculation/PDF rule change. Read [browser saving](browser-projects.md) and the [audit resolution](audits/sprint-13-workshop-readiness.md) before changing provider lifetime or navigation. Native browser automation was unavailable during this change; do not infer deployed/native verification from handler tests.
 
 FORMA is a modular estimation platform. The implemented POC is exclusively **wardrobes made from PAL**. Other domains are visible but unavailable. UI and explanations to the owner are Romanian; code, identifiers and technical docs are English.

@@ -97,3 +97,29 @@ Several complex stateful handlers and rendering paths are compressed onto single
 Serve the static Pages export with `/forma` base path and `cacheComponents=false`. On desktop and mobile: select a valid sketch, confirm configuration and prices without a name, try invalid/cancelled replacement, then a valid replacement; verify retention/reset. Edit a saved project's dimensions/prices/metadata; attempt navbar links and Back/Forward; test **Rămâi**, save failure (blocked storage/conflict), successful save, explicit discard, reload and tab close after user interaction. Open the supplier catalog in its separate tab and return. Confirm no duplicate project after repeated save clicks, no unexpected revision overwrite and no stale preview URL. Also check focus/keyboard escape, 360/390/430 px layouts, cross-document history and mobile browser lifecycle behavior.
 
 The remaining original findings, especially WR-01/WR-04/WR-05, still block an unqualified professional workshop readiness claim. This remediation does not convert the original overall assessment to GO.
+
+## Sprint 14B — WR-04 / WR-05 / WR-10 remediation
+
+The original findings above describe the Sprint 13 implementation and are preserved. The statuses below supersede their historical open status for the tested local implementation; they do not claim live deployment or native browser E2E verification.
+
+### WR-04 status: resolved in implementation, verified with regression tests
+
+One shared UTF-8-byte policy now applies to catalog export/import: 16 MiB, retaining the existing 500-supplier / 3000-offer caps and v1 backup format. Compact exports are checked before download; over-limit data fails without truncation. The audit reproduction (900 offers, 1950-character URL paths, greater than 2 MiB) round-trips through both catalog and full-backup importers. Tests exercise exactly 16 MiB and one byte over, 3000/3001 offers, 500 suppliers, Romanian multibyte characters and a valid-record catalog whose export exceeds the supported byte cap. Previous valid furniture backups remain accepted. Evidence: `size-policy.ts`, `catalog-repository.ts`, `catalog-backup.tsx`, `backup-recovery.test.mjs`.
+
+### WR-05 status: resolved in implementation, verified with regression tests
+
+`/setari/backup-si-restaurare` exports a versioned `forma-backup` v1 envelope with all saved browser project envelopes, furniture catalog and company profile/logo. It validates and reparses the serialized file before offering download; corrupt owned data blocks a supposedly complete export. The preview is read-only. Merge lists/skips every ID conflict; explicit replacement affects only selected sections. IDs, configurations, historical timestamps, construction versions and exact saved prices/supplier snapshots survive restoration. Existing-record revisions are rebased to reject ordinary stale editors; new records retain incoming metadata. No sketch/draft/auth/server project data is exported, and no calculation/catalog price refresh occurs during restore. Evidence: full/partial/empty export/import, historical version, same-ID conflict, changed-current-catalog price, explicit replacement and unrelated-key tests in `backup-recovery.test.mjs`.
+
+### WR-10 status: resolved for supported local records, verified with regression tests
+
+Dedicated recovery inspection and raw record download do not depend on successful catalog/company loading. Discoverable recovery links remain outside disabled/loading normal forms. Corrupt or unknown-version project/catalog/company records are retained until explicitly replaced from a valid backup. Interrupted restores retain an allowlisted before/after journal; normal repository access blocks until recovery. Staging failure leaves data untouched; write failure rolls back; rollback failure lists exact keys/sections and retains the downloadable journal. Retry restores supported journals without overwriting a different concurrent value. Malformed/future journals intentionally require developer-assisted recovery after raw download; they are never guessed or automatically deleted. Evidence: corrupted records/raw artifact, explicit recovery, quota, interruption, normal-writer blocking, concurrent-value and rollback failure/retry tests.
+
+### Sprint 14B executed checks and remaining gaps
+
+- **130 frontend tests pass**, including **20 new backup/recovery regressions**. Existing PDF tests remain included; no PDF template or amount formula changed.
+- ESLint (zero warnings) and TypeScript pass. Standard production build and `GITHUB_PAGES=true` export pass; the new static backup route is generated (15 build entries). One initial Pages build attempt was blocked by an already-running standard build; it passed when retried after that process completed.
+- **165 backend tests pass**, including project/revision, pricing, calculations and health regressions. Existing Node module-type and Starlette/httpx deprecation warnings remain; no backend files, database flags or dependencies changed.
+- Browser discovery again returned `The browser access host is unavailable`. No destructive testing was performed against real browser data. Actual download persistence, native quotas/process interruption, multi-tab isolation, mobile/desktop screenshots and clean-profile project→backup→restore→quotation E2E remain manual checks. Source/handler/Map-storage tests do not prove these native behaviors.
+- localStorage has no cross-key transactions. The journal/locks/baselines provide staging, observed-conflict detection and explicit recovery, not serializable database guarantees or protection from browser data eviction/old clients. See [backup and recovery](../backup-and-recovery.md) for guarantees, revision policy, privacy and manual verification checklist.
+
+WR-01 and the other untouched findings remain open; this sprint does not establish unconditional professional workshop readiness.

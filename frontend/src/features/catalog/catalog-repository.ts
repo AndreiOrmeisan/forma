@@ -1,5 +1,7 @@
 import { CatalogError, emptyCatalog, isObject, itemFields, onlyKeys, supplierFields, validDate, validateCatalog, validateItem, validateSupplier,
   type CatalogItemInput, type CatalogState, type SupplierInput } from "./catalog-model";
+import { catalogBackupMaxBytes, requireByteLimit } from "../storage/size-policy";
+import { assertNoPendingRestore } from "../storage/restore-transaction";
 
 export const legacyCatalogStorageKey="forma:supplier-catalog:v1";
 export function catalogStorageKeyFor(domainId:string):string {
@@ -22,6 +24,7 @@ function storage():Storage {
   catch{throw new CatalogError("Browserul nu permite accesul la catalog. Permite datele site-ului sau folosește o fereastră normală.");}
 }
 function read(domainId:string):CatalogState {
+  assertNoPendingRestore(storage());
   let raw:string|null;
   try{
     raw=storage().getItem(catalogStorageKeyFor(domainId));
@@ -35,6 +38,7 @@ function read(domainId:string):CatalogState {
 }
 async function change(domainId:string,revision:number,apply:(state:CatalogState)=>CatalogState):Promise<CatalogState> {
   const action=async()=>{
+    assertNoPendingRestore(storage());
     const current=read(domainId);
     if(current.revision!==revision)throw new CatalogError("Catalogul a fost modificat în altă filă. Reîncarcă lista înainte de a confirma din nou; formularul nu a fost șters.");
     const next=validateCatalog({...apply(structuredClone(current)),revision:current.revision+1});
@@ -51,10 +55,12 @@ function withoutMeta<T extends object>(value:T,fields:string[]){return Object.fr
 export function exportCatalog(state:CatalogState,domainId="furniture"):CatalogBackup {
   catalogStorageKeyFor(domainId);
   const valid=validateCatalog(state);
-  return {format:"forma-supplier-catalog",schema_version:1,domain_id:domainId,exported_at:stamp(),suppliers:valid.suppliers,items:valid.items};
+  const backup:CatalogBackup = {format:"forma-supplier-catalog",schema_version:1,domain_id:domainId,exported_at:stamp(),suppliers:valid.suppliers,items:valid.items};
+  requireByteLimit(JSON.stringify(backup),catalogBackupMaxBytes,"Catalogul exportat");
+  return backup;
 }
 export function parseCatalogBackup(text:string,domainId="furniture"):CatalogBackup {
-  if(text.length>2*1024*1024)throw new CatalogError("Fișierul JSON poate avea maximum 2 MB.");
+  requireByteLimit(text,catalogBackupMaxBytes);
   let value:unknown;
   try{value=JSON.parse(text);}catch{throw new CatalogError("Fișierul nu conține JSON valid.");}
   if(!onlyKeys(value,["format","schema_version","domain_id","exported_at","suppliers","items"]) || !isObject(value) || value.format!=="forma-supplier-catalog" || value.schema_version!==1 || !validDate(value.exported_at))throw new CatalogError("Fișierul nu este un backup FORMA compatibil.");

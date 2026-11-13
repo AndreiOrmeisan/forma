@@ -1,6 +1,7 @@
 import { isProject, projectUuid, type FurnitureProject, type ProjectInput, type ProjectPage } from "./project-contract";
 import { pricingError } from "./wardrobe-pricing";
 import { migrateManualSnapshots } from "./project-price-snapshot";
+import { assertNoPendingRestore } from "../storage/restore-transaction";
 
 export const browserProjectPrefix = "forma:wardrobe-project:v1:";
 const lockName = "forma:wardrobe-project-writes:v1";
@@ -67,6 +68,11 @@ function read(id:string): FurnitureProject {
   if (!projectUuid.test(id)) throw new BrowserProjectError("Identificatorul proiectului este invalid.",404);
   const raw = storage().getItem(browserProjectPrefix+id);
   if (raw === null) throw new BrowserProjectError("Proiectul nu există în acest browser sau a fost șters.",404);
+  return decodeBrowserProject(raw, id);
+}
+
+export function decodeBrowserProject(raw: string, id: string): FurnitureProject {
+  if (!projectUuid.test(id)) throw new BrowserProjectError("Identificatorul proiectului este invalid.");
   try {
     const envelope = JSON.parse(raw);
     if (!onlyKeys(envelope,["storage_version","project"]) || (envelope.storage_version !== 1 && envelope.storage_version !== 2) ||
@@ -104,15 +110,55 @@ function write(project:StoredProject): FurnitureProject {
 }
 
 async function mutation<T>(action:()=>T): Promise<T> {
+  const guarded = () => {assertNoPendingRestore(storage()); return action();};
   // Web Locks serialize concurrent writes across same-origin tabs where supported.
-  if (typeof navigator !== "undefined" && navigator.locks) return navigator.locks.request(lockName,async()=>action());
-  return action(); // Per-project keys avoid overwriting unrelated projects on older browsers.
+  if (typeof navigator !== "undefined" && navigator.locks) return navigator.locks.request(lockName,async()=>guarded());
+  return guarded(); // Per-project keys avoid overwriting unrelated projects on older browsers.
+}
+
+export type BrowserProjectEnvelope = {storage_version: 1 | 2; project: StoredProject};
+export function validateProjectBackup(value: unknown): BrowserProjectEnvelope {
+  const raw = JSON.stringify(value);
+  const id = (value as BrowserProjectEnvelope)?.project?.id;
+  decodeBrowserProject(raw, id);
+  return structuredClone(value) as BrowserProjectEnvelope;
+}
+
+export function exportBrowserProjects(): BrowserProjectEnvelope[] {
+  const source = storage();
+  const keys = Array.from({length:source.length}, (_, i) => source.key(i)).filter((key):key is string => !!key && key.startsWith(browserProjectPrefix)).sort();
+  return keys.map(key => {
+    const raw = source.getItem(key)!;
+    decodeBrowserProject(raw, key.slice(browserProjectPrefix.length));
+    return validateProjectBackup(JSON.parse(raw));
+  });
+}
+
+/** Restore is the only writer permitted to preserve historical identities. */
+export function projectRestoreValue(envelope: BrowserProjectEnvelope, previous: string | null, revisionFloor = 0): string {
+  const valid = validateProjectBackup(envelope);
+  if (previous !== null) {
+    let current: FurnitureProject;
+    try {
+      current = decodeBrowserProject(previous, valid.project.id);
+    } catch {
+      // Invalidate ordinary stale editors even when the damaged record has no
+      // usable revision. Original creation/update timestamps stay historical.
+      valid.project.revision = Math.max(revisionFloor, valid.project.revision) + 1;
+      if (!Number.isSafeInteger(valid.project.revision)) throw new Error("Revizia proiectului depășește limita suportată.");
+      return JSON.stringify(valid);
+    }
+    valid.project.revision = Math.max(current.revision, valid.project.revision) + 1;
+    if (!Number.isSafeInteger(valid.project.revision)) throw new Error("Revizia proiectului depășește limita suportată.");
+  }
+  return JSON.stringify(valid);
 }
 
 function nowAfter(value?:string) {return new Date(Math.max(Date.now(),value ? Date.parse(value)+1 : 0)).toISOString();}
 function conflict():never {throw new BrowserProjectError("Proiectul a fost modificat în altă filă sau versiunea este incompatibilă. Redeschide-l înainte de a salva.",409);}
 
 export async function browserProjectRequest(path:string, options:RequestInit={}): Promise<unknown> {
+  assertNoPendingRestore(storage());
   const [pathname,query] = path.split("?");
   const params = new URLSearchParams(query);
   const method = (options.method || "GET").toUpperCase();

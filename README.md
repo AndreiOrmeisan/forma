@@ -19,6 +19,7 @@ All maintained setup, context and feature references live in [docs/](docs/README
 | [Supplier catalog](docs/supplier-catalog.md) | Browser-local suppliers/offers, preferred rates, frozen project snapshots, migration and JSON backup |
 | [PDF export](docs/pdf-export.md) | Client quotations, workshop sheets, reusable company profile and local document generation |
 | [Persistence](docs/project-persistence.md) | Project lifecycle, SQLite, cloud storage, revisions and backups |
+| [Local backup and recovery](docs/backup-and-recovery.md) | Full project/catalog/company backup, restore preview and corrupted-data recovery |
 | [Browser POC saving](docs/browser-projects.md) | Default localStorage mode; no database/auth setup, limits and later switch |
 | [Free online setup](docs/free-online-setup.md) | Owner's Supabase Free / Google OAuth activation steps |
 | [Troubleshooting](docs/troubleshooting.md) | Windows, Git, styling, uploads, auth and deployment failures |

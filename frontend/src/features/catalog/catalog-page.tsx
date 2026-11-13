@@ -9,6 +9,7 @@ import { CatalogItemForm, SupplierForm } from "./catalog-forms";
 import { CatalogBackupPanel } from "./catalog-backup";
 import { CatalogConfirmDialog } from "./catalog-confirm-dialog";
 import styles from "./catalog.module.css";
+import { RecoveryLink } from "../storage/recovery-link";
 
 type Editor={kind:"supplier";value:Supplier|null}|{kind:"item";value:CatalogItem|null};
 export function CatalogPage(){
@@ -24,6 +25,7 @@ export function CatalogPage(){
     <Link href={furnitureRoutes.home} className={styles.link}>← Mobilier &amp; Tâmplărie</Link><div className={styles.heading}><div><p className={styles.domainLabel}>MOBILIER &amp; TÂMPLĂRIE</p><h1>Furnizori și prețuri</h1><p>Furnizorii și ofertele tale pentru proiectele de mobilier.</p></div><button className={styles.secondary} disabled={busy} onClick={()=>void load()}>Reîncarcă lista</button></div>
     <div className={styles.notice}>Catalog dedicat domeniului Mobilier, salvat doar în acest browser. Nu este sincronizat între dispozitive și se poate pierde la ștergerea datelor site-ului. Fără prețuri de piață sau acces automat la furnizori.</div>
     {error && <p className={styles.error} role="alert">{error}</p>}
+    <p><RecoveryLink/></p>
     {success && <p role="status">{success}</p>}
     {!catalog ? <p role="status">{error ? "Datele existente nu au fost înlocuite.":"Încărcăm catalogul…"}</p>:<>
       <div className={styles.tabs} aria-label="Secțiuni catalog"><button aria-pressed={tab==="items"} onClick={()=>{setTab("items");setEditor(null);}}>Catalog de prețuri ({catalog.items.length})</button><button aria-pressed={tab==="suppliers"} onClick={()=>{setTab("suppliers");setEditor(null);}}>Furnizori ({suppliers.length})</button></div>

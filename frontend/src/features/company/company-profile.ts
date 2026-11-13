@@ -1,3 +1,4 @@
+import { assertNoPendingRestore } from "../storage/restore-transaction";
 export const companyProfileKey = "forma:company-profile:v1";
 export const companyProfileRoute = "/setari/date-firma";
 export const logoMaxBytes = 128 * 1024;
@@ -41,12 +42,19 @@ export function loadCompanyProfile():CompanyProfile|null {
   if(typeof window==="undefined")return null;
   let raw:string|null;
   try{raw=window.localStorage.getItem(companyProfileKey);}catch{throw new Error("Browserul nu permite citirea datelor firmei.");}
+  assertNoPendingRestore(window.localStorage);
   if(raw===null)return null;
-  try{const envelope=JSON.parse(raw);if(envelope.schema_version!==1 || Object.keys(envelope).some(k=>!["schema_version","profile"].includes(k)))throw new Error();return validateCompanyProfile(envelope.profile);}
+  try{return decodeCompanyProfile(raw);}
   catch{throw new Error("Profilul salvat este invalid sau incompatibil. Datele existente nu au fost șterse.");}
+}
+export function decodeCompanyProfile(raw: string): CompanyProfile {
+  const envelope = JSON.parse(raw);
+  if (!envelope || envelope.schema_version !== 1 || Object.keys(envelope).some(key => !["schema_version", "profile"].includes(key))) throw new Error("Profilul firmei este incompatibil.");
+  return validateCompanyProfile(envelope.profile);
 }
 export function saveCompanyProfile(profile:CompanyProfile):CompanyProfile {
   const valid=validateCompanyProfile(profile);
+  assertNoPendingRestore(window.localStorage);
   try{window.localStorage.setItem(companyProfileKey,JSON.stringify({schema_version:1,profile:valid}));}
   catch{throw new Error("Profilul nu a putut fi salvat. Spațiul browserului poate fi plin sau blocat; datele anterioare sunt păstrate.");}
   return valid;

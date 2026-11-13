@@ -45,7 +45,7 @@ Logos accept **PNG and JPEG only**, maximum **128 KiB**, dimensions **1–2048 p
 
 Storage quota/access errors show a clear failure and preserve previous data. Corrupt/unknown versions are reported without clearing them or silently replacing them with empty data. The settings form stays blocked when existing storage cannot be read safely. No passwords, tokens or credentials belong in this profile.
 
-Profile/issuer data is specific to the current site origin/browser/device, not an account, cloud store or encrypted backup. Other users of the same browser profile can access it. Clearing site data can remove it. Company profile backup/sync is not implemented. Profile saves use last-write-wins across tabs; avoid editing the profile in multiple tabs simultaneously.
+Profile/issuer data is specific to the current site origin/browser/device, not an account, cloud store or encrypted backup. Other users of the same browser profile can access it. Clearing site data can remove it. Sprint 14B includes company profile/logo in [local full backups](backup-and-recovery.md); cloud sync is not implemented. Profile saves use last-write-wins across tabs and block while a restore journal is pending; avoid editing the profile in multiple tabs simultaneously.
 
 ## Saved project prices and freshness
 
